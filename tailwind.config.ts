@@ -63,12 +63,17 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				automotive: {
-					blue: '#0A2463',
-					lightBlue: '#3E92CC',
-					gray: '#FFFAFF',
-					accent: '#D8315B',
-					dark: '#1E1B18'
+				kepli: {
+					purple: '#6366F1',
+					lightPurple: '#818CF8',
+					darkPurple: '#4F46E5',
+					lightBlue: '#93C5FD',
+					pink: '#F472B6',
+					lightPink: '#F9A8D4',
+					background: '#F9FAFB',
+					gray: '#6B7280',
+					darkGray: '#374151',
+					darkBlue: '#1E293B',
 				}
 			},
 			borderRadius: {

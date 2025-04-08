@@ -8,51 +8,51 @@ import {
 
 const faqs = [
   {
-    question: "How does the AI in AutoCRMAI work?",
+    question: "What is Kepli and how does it work?",
     answer:
-      "Our AI analyzes your customer data, market trends, and industry patterns to provide predictive insights and automate routine tasks. It learns from your business operations to become smarter and more tailored to your specific needs over time.",
+      "Kepli is a customer communication platform that helps businesses manage all their customer conversations in one place. It integrates with multiple channels like email, chat, social media, and more to provide a unified inbox and customer view.",
   },
   {
-    question: "Can I integrate AutoCRMAI with my DMS?",
+    question: "How does the multichannel messaging work?",
     answer:
-      "Yes, AutoCRMAI integrates seamlessly with most popular Dealer Management Systems, including CDK, Reynolds & Reynolds, Dealertrack, and more. Our team can help set up custom integrations for other systems if needed.",
+      "Kepli connects to all your communication channels (email, live chat, social media, SMS, etc.) and brings all messages into one unified inbox. Your team can respond to customers from any channel without switching between different tools.",
   },
   {
-    question: "Is my data secure with AutoCRMAI?",
+    question: "Is Kepli suitable for my business size?",
     answer:
-      "Absolutely. We implement bank-level encryption, regular security audits, and strict access controls. We're GDPR compliant and follow industry best practices for data protection. Your customers' information is always safe with us.",
+      "Yes! Kepli offers flexible plans designed for businesses of all sizes - from small startups to large enterprises. Our pricing scales based on your needs, and you can upgrade or downgrade at any time.",
   },
   {
-    question: "How long does implementation take?",
+    question: "How secure is my customer data with Kepli?",
     answer:
-      "Most dealerships are up and running within 2-4 weeks. Our implementation team handles data migration, staff training, and system configuration. We have a proven onboarding process that ensures minimal disruption to your business.",
+      "We take security seriously. Kepli uses bank-level encryption, regular security audits, and strict access controls. We're GDPR compliant and follow industry best practices for data protection.",
   },
   {
-    question: "Do you offer training for my team?",
+    question: "Can I try Kepli before committing?",
     answer:
-      "Yes, all plans include comprehensive training sessions for your staff. Our Professional and Enterprise plans also include ongoing training resources and regular check-ins to ensure your team is maximizing the system's potential.",
+      "Absolutely! All our plans come with a 14-day free trial that gives you full access to the platform's features. No credit card is required to start your trial.",
   },
 ];
 
 const FAQ = () => {
   return (
-    <section id="faq" className="bg-gray-50 py-20">
+    <section id="faq" className="bg-white py-20">
       <div className="container mx-auto px-4">
-        <h2 className="mb-2 text-center text-3xl font-bold tracking-tight text-automotive-blue md:text-4xl">
+        <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
           Frequently Asked Questions
         </h2>
-        <p className="mx-auto mb-12 max-w-2xl text-center text-lg text-gray-600">
-          Everything you need to know about AutoCRMAI
+        <p className="mx-auto mb-12 max-w-2xl text-center text-kepli-gray">
+          Everything you need to know about Kepli
         </p>
 
         <div className="mx-auto max-w-3xl">
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-left text-lg font-medium text-automotive-blue">
+              <AccordionItem key={index} value={`item-${index}`} className="border-b border-gray-200">
+                <AccordionTrigger className="text-left text-lg font-medium text-kepli-darkGray py-4">
                   {faq.question}
                 </AccordionTrigger>
-                <AccordionContent className="text-gray-600">
+                <AccordionContent className="text-kepli-gray pb-4">
                   {faq.answer}
                 </AccordionContent>
               </AccordionItem>
@@ -61,13 +61,13 @@ const FAQ = () => {
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-gray-600">
+          <p className="text-kepli-gray">
             Don't see your question here?{" "}
             <a
               href="#contact"
-              className="font-medium text-automotive-lightBlue hover:underline"
+              className="font-medium text-kepli-purple hover:underline"
             >
-              Contact our team
+              Contact our support team
             </a>
           </p>
         </div>

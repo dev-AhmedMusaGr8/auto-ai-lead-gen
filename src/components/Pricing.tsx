@@ -5,99 +5,99 @@ import { Check } from "lucide-react";
 
 const pricingPlans = [
   {
-    name: "Starter",
-    price: "$99",
-    description: "Perfect for small dealerships just getting started.",
+    name: "Basic",
+    price: "$19",
+    description: "Perfect for small businesses",
     features: [
-      "Up to 500 customer records",
-      "Basic lead management",
-      "Sales pipeline tracking",
+      "Up to 5 user accounts",
+      "Basic customer management",
       "Email integration",
-      "Mobile app access",
+      "Live chat support",
+      "Mobile access",
     ],
     cta: "Start Free Trial",
     highlighted: false,
+    badge: "",
   },
   {
     name: "Professional",
-    price: "$249",
-    description: "Ideal for established dealerships ready to grow.",
+    price: "$49",
+    description: "Best for growing companies",
     features: [
-      "Unlimited customer records",
-      "AI-powered lead scoring",
-      "Inventory management",
-      "Service scheduling",
-      "Custom reports and dashboards",
-      "Marketing automation",
+      "Up to 25 user accounts",
+      "Advanced customer profiles",
+      "Multichannel integration",
+      "Workflow automation",
+      "Custom reports and analytics",
+      "24/7 priority support",
     ],
     cta: "Start Free Trial",
     highlighted: true,
+    badge: "MOST POPULAR",
   },
   {
     name: "Enterprise",
-    price: "Custom",
-    description: "For dealership groups and large operations.",
+    price: "$99",
+    description: "For large organizations",
     features: [
-      "Multi-location management",
-      "Advanced AI insights",
+      "Unlimited user accounts",
+      "Enterprise-grade security",
+      "Advanced API access",
       "Custom integrations",
       "Dedicated account manager",
-      "24/7 priority support",
       "White-label options",
+      "Advanced analytics",
     ],
     cta: "Contact Sales",
     highlighted: false,
+    badge: "",
   },
 ];
 
 const Pricing = () => {
   return (
-    <section id="pricing" className="py-20">
+    <section id="pricing" className="bg-white py-20">
       <div className="container mx-auto px-4">
-        <h2 className="mb-2 text-center text-3xl font-bold tracking-tight text-automotive-blue md:text-4xl">
-          Simple, Transparent Pricing
+        <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
+          Flexible Plans for Teams of All Sizes
         </h2>
-        <p className="mx-auto mb-16 max-w-2xl text-center text-lg text-gray-600">
-          Choose the plan that's right for your automotive business
+        <p className="mx-auto mb-12 max-w-2xl text-center text-kepli-gray">
+          Choose the perfect plan for your business needs
         </p>
 
         <div className="grid gap-8 md:grid-cols-3">
           {pricingPlans.map((plan, index) => (
             <Card
               key={index}
-              className={`overflow-hidden ${
+              className={`overflow-hidden border ${
                 plan.highlighted
-                  ? "border-automotive-lightBlue shadow-lg"
-                  : "border shadow"
+                  ? "border-kepli-purple shadow-lg"
+                  : "border-gray-200 shadow-sm"
               }`}
             >
-              {plan.highlighted && (
-                <div className="bg-automotive-lightBlue py-1 text-center text-sm font-semibold text-white">
-                  Most Popular
+              {plan.highlighted && plan.badge && (
+                <div className="bg-kepli-purple py-1 text-center text-sm font-semibold text-white">
+                  {plan.badge}
                 </div>
               )}
               <CardHeader
-                className={`pb-8 pt-6 text-center ${
-                  plan.highlighted ? "bg-automotive-lightBlue/5" : ""
-                }`}
+                className={`pb-6 pt-6 text-center`}
               >
-                <h3 className="text-xl font-bold text-automotive-blue">
+                <h3 className="text-xl font-bold text-kepli-darkGray">
                   {plan.name}
                 </h3>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  {plan.price !== "Custom" && (
-                    <span className="text-gray-500">/month</span>
-                  )}
+                  <span className="text-4xl font-bold text-kepli-darkGray">{plan.price}</span>
+                  <span className="text-kepli-gray">/month</span>
                 </div>
-                <p className="mt-2 text-gray-500">{plan.description}</p>
+                <p className="mt-2 text-kepli-gray">{plan.description}</p>
               </CardHeader>
               <CardContent className="pt-6">
                 <ul className="space-y-3">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center">
-                      <Check className="mr-2 h-5 w-5 text-automotive-lightBlue" />
-                      <span>{feature}</span>
+                      <Check className="mr-2 h-5 w-5 text-kepli-purple" />
+                      <span className="text-kepli-darkGray">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -106,8 +106,8 @@ const Pricing = () => {
                 <Button
                   className={`w-full ${
                     plan.highlighted
-                      ? "bg-automotive-accent hover:bg-automotive-accent/90"
-                      : "bg-automotive-blue hover:bg-automotive-blue/90"
+                      ? "bg-kepli-purple hover:bg-kepli-darkPurple"
+                      : "bg-white border-2 border-kepli-purple text-kepli-purple hover:bg-kepli-purple/5"
                   }`}
                 >
                   {plan.cta}
@@ -118,7 +118,7 @@ const Pricing = () => {
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-gray-500">
+          <p className="text-kepli-gray">
             All plans include a 14-day free trial. No credit card required.
           </p>
         </div>

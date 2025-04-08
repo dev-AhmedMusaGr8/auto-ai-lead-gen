@@ -3,41 +3,69 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const testimonials = [
   {
-    quote: "AutoCRMAI has completely transformed how we manage customer relationships. The predictive insights have helped us increase our sales by 27% in just three months.",
+    stars: 5,
+    quote: "Kepli has transformed how we handle customer communication. The unified inbox saves us hours every day.",
     author: "Michael Rodriguez",
-    title: "General Manager, Premium AutoGroup",
+    title: "Customer Service Manager",
   },
   {
-    quote: "The service scheduling feature has eliminated double bookings and reduced our no-shows by 42%. It's like having an extra service advisor without the overhead.",
+    stars: 5,
+    quote: "The multichannel capabilities let us meet customers wherever they are. Our satisfaction rates have increased by 37%.",
     author: "Sarah Chen",
-    title: "Service Director, Pacific Motors",
+    title: "Marketing Director",
   },
   {
-    quote: "The AI-powered lead scoring has been a game-changer for our sales team. We're focusing on the right prospects at the right time, and our conversion rate has never been higher.",
+    stars: 5,
+    quote: "The automation tools have streamlined our workflows and freed up our team to focus on what matters most.",
     author: "David Thompson",
-    title: "Sales Director, Eastside Automotive",
+    title: "Operations Manager",
+  },
+  {
+    stars: 5,
+    quote: "Implementing Kepli was seamless. The customer support team guided us every step of the way.",
+    author: "Emily Johnson",
+    title: "IT Director",
+  },
+  {
+    stars: 5,
+    quote: "The insights we get from the analytics dashboard help us make data-driven decisions about our customer service.",
+    author: "Alex Rivera",
+    title: "Business Analyst",
+  },
+  {
+    stars: 5,
+    quote: "Kepli is intuitive and user-friendly. Our team needed minimal training to get started.",
+    author: "Jessica Williams",
+    title: "Team Lead",
   },
 ];
 
 const Testimonials = () => {
   return (
-    <section className="bg-automotive-blue py-20 text-white">
+    <section className="bg-white py-20" id="testimonials">
       <div className="container mx-auto px-4">
-        <h2 className="mb-2 text-center text-3xl font-bold tracking-tight md:text-4xl">
-          Trusted by Industry Leaders
+        <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
+          What Our Customers Are Saying
         </h2>
-        <p className="mx-auto mb-16 max-w-2xl text-center text-lg opacity-80">
-          Hear what automotive professionals have to say about AutoCRMAI
+        <p className="mx-auto mb-16 max-w-2xl text-center text-kepli-gray">
+          Trusted by thousands of companies worldwide
         </p>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="bg-white/10 border-none">
+            <Card key={index} className="border border-gray-100 shadow-sm">
               <CardContent className="p-6">
-                <blockquote className="mb-4 text-lg italic">"{testimonial.quote}"</blockquote>
+                <div className="mb-3 flex">
+                  {Array(testimonial.stars).fill(null).map((_, i) => (
+                    <svg key={i} className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <blockquote className="mb-4 text-kepli-darkGray">"{testimonial.quote}"</blockquote>
                 <div>
-                  <p className="font-semibold">{testimonial.author}</p>
-                  <p className="text-sm opacity-80">{testimonial.title}</p>
+                  <p className="font-semibold text-kepli-darkGray">{testimonial.author}</p>
+                  <p className="text-sm text-kepli-gray">{testimonial.title}</p>
                 </div>
               </CardContent>
             </Card>
