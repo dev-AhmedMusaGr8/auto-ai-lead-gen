@@ -9,23 +9,23 @@ const Hero = () => {
     <div className="relative overflow-hidden bg-white pt-20">
       <div className="kepli-gradient absolute inset-0 z-0"></div>
       <div className="container relative z-10 mx-auto px-4 py-20 md:py-28">
-        <div className="flex flex-col items-center text-center mb-16">
-          <div className="mb-8 flex space-x-2">
-            <div className="h-8 w-8 rounded-full bg-yellow-100 border border-yellow-300"></div>
-            <div className="h-8 w-8 rounded-full bg-blue-100 border border-blue-300"></div>
-            <div className="h-8 w-8 rounded-full bg-green-100 border border-green-300"></div>
+        <div className="flex flex-col items-center text-center mx-auto max-w-4xl mb-20">
+          <div className="mb-10 flex space-x-3">
+            <div className="h-10 w-10 rounded-full bg-yellow-100 border border-yellow-300"></div>
+            <div className="h-10 w-10 rounded-full bg-blue-100 border border-blue-300"></div>
+            <div className="h-10 w-10 rounded-full bg-green-100 border border-green-300"></div>
           </div>
-          <h1 className="mb-6 text-4xl font-bold text-kepli-darkGray max-w-3xl md:text-5xl">
+          <h1 className="mb-8 text-5xl font-bold text-kepli-darkGray max-w-3xl leading-tight md:text-6xl">
             AI-Powered CRM for the Automotive Industry
           </h1>
-          <p className="mb-8 max-w-2xl text-kepli-gray text-lg">
+          <p className="mb-10 max-w-2xl text-kepli-gray text-xl">
             Streamline your dealership operations, boost sales performance, and deliver exceptional customer experiences with our intelligent automotive CRM solution.
           </p>
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-            <Button size="lg" className="bg-kepli-purple hover:bg-kepli-darkPurple rounded-lg">
+          <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
+            <Button size="lg" className="bg-kepli-purple hover:bg-kepli-darkPurple rounded-lg text-base px-8 py-6 h-auto">
               Start Free Trial
             </Button>
-            <Button size="lg" variant="outline" className="border-kepli-purple text-kepli-purple hover:bg-kepli-purple/5 rounded-lg">
+            <Button size="lg" variant="outline" className="border-kepli-purple text-kepli-purple hover:bg-kepli-purple/5 rounded-lg text-base px-8 py-6 h-auto">
               Book a Demo
             </Button>
           </div>
