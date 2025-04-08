@@ -71,12 +71,12 @@ const Pricing = () => {
               key={index}
               className={`overflow-hidden border ${
                 plan.highlighted
-                  ? "border-kepli-purple shadow-lg"
+                  ? "border-[#8B5CF6] shadow-lg"
                   : "border-gray-200 shadow-sm"
               }`}
             >
               {plan.highlighted && plan.badge && (
-                <div className="bg-kepli-purple py-1 text-center text-sm font-semibold text-white">
+                <div className="bg-[#8B5CF6] py-1 text-center text-sm font-semibold text-white">
                   {plan.badge}
                 </div>
               )}
@@ -96,7 +96,7 @@ const Pricing = () => {
                 <ul className="space-y-3">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-center">
-                      <Check className="mr-2 h-5 w-5 text-kepli-purple" />
+                      <Check className="mr-2 h-5 w-5 text-[#8B5CF6]" />
                       <span className="text-kepli-darkGray">{feature}</span>
                     </li>
                   ))}
@@ -106,8 +106,8 @@ const Pricing = () => {
                 <Button
                   className={`w-full ${
                     plan.highlighted
-                      ? "bg-kepli-purple hover:bg-kepli-darkPurple"
-                      : "bg-white border-2 border-kepli-purple text-kepli-purple hover:bg-kepli-purple/5"
+                      ? "bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium"
+                      : "bg-white border-2 border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-6 py-2 h-10 font-medium"
                   }`}
                 >
                   {plan.cta}

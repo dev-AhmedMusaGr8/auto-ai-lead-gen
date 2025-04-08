@@ -74,7 +74,7 @@ const Navbar = () => {
             Login
           </a>
           <Button 
-            className="bg-kepli-purple hover:bg-kepli-darkPurple text-white rounded-lg"
+            className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium"
           >
             Sign Up Free
           </Button>
@@ -112,7 +112,7 @@ const Navbar = () => {
               <a href="#" className="font-medium text-kepli-darkGray">
                 Login
               </a>
-              <Button className="bg-kepli-purple hover:bg-kepli-darkPurple text-white w-full">
+              <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium w-full">
                 Sign Up Free
               </Button>
             </div>

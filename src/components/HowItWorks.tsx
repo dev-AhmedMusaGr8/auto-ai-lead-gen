@@ -47,7 +47,7 @@ const HowItWorks = () => {
         <div className="mt-16 text-center">
           <Button 
             size="lg" 
-            className="bg-kepli-purple hover:bg-kepli-darkPurple"
+            className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-8 py-3 h-12 font-medium shadow-md"
           >
             See It In Action
           </Button>
