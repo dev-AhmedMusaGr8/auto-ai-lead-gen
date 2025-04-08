@@ -1,30 +1,30 @@
 
-import { MessageSquare, Users, Settings, Check } from "lucide-react";
+import { MessageSquare, Users, Settings, Check, BarChart } from "lucide-react";
 
 const featureGroups = [
   {
     icon: <Users size={24} className="text-white" />,
     bgColor: "feature-icon-purple",
-    title: "Customer Management",
-    description: "Organize all your customer data in one place"
+    title: "Lead Management",
+    description: "Track and nurture automotive leads through your sales funnel"
   },
   {
     icon: <MessageSquare size={24} className="text-white" />,
     bgColor: "feature-icon-blue",
-    title: "Multichannel Messaging",
-    description: "Connect via chat, email, social media & more"
+    title: "Customer Communication",
+    description: "Engage customers across email, SMS, & social media"
   },
   {
     icon: <Settings size={24} className="text-white" />,
     bgColor: "feature-icon-green",
-    title: "Automation Tools",
-    description: "Save time with smart workflow automation"
+    title: "AI-Powered Insights",
+    description: "Gain actionable intelligence for better decision making"
   },
   {
-    icon: <Check size={24} className="text-white" />,
+    icon: <BarChart size={24} className="text-white" />,
     bgColor: "feature-icon-orange",
-    title: "Performance Analytics",
-    description: "Track metrics that matter to your business"
+    title: "Sales Analytics",
+    description: "Track performance with automotive-specific metrics"
   }
 ];
 
@@ -33,7 +33,7 @@ const Features = () => {
     <section id="features" className="py-20 bg-white">
       <div className="container mx-auto px-4">
         <h2 className="mb-6 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
-          Everything You Need to Manage Customer Conversations Efficiently and Organized
+          Everything You Need to Manage Your Dealership Efficiently
         </h2>
         
         <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -58,9 +58,9 @@ const Features = () => {
             <div className="mb-4 rounded-full bg-blue-100 p-2 text-blue-600">
               <Users size={24} />
             </div>
-            <h3 className="mb-3 text-lg font-semibold text-kepli-darkGray">Unified Customer View</h3>
+            <h3 className="mb-3 text-lg font-semibold text-kepli-darkGray">Inventory Integration</h3>
             <p className="text-center text-kepli-gray lg:text-left">
-              See all customer interactions and history in one complete profile view
+              Seamlessly connect your vehicle inventory with customer interactions for better sales matching
             </p>
           </div>
           
@@ -68,9 +68,9 @@ const Features = () => {
             <div className="mb-4 rounded-full bg-green-100 p-2 text-green-600">
               <MessageSquare size={24} />
             </div>
-            <h3 className="mb-3 text-lg font-semibold text-kepli-darkGray">Smart Conversations</h3>
+            <h3 className="mb-3 text-lg font-semibold text-kepli-darkGray">Smart Follow-ups</h3>
             <p className="text-center text-kepli-gray lg:text-left">
-              AI-powered responses help you communicate effectively with customers
+              AI-powered responses help you reach out to prospects at the right time with the right message
             </p>
           </div>
           
@@ -78,9 +78,9 @@ const Features = () => {
             <div className="mb-4 rounded-full bg-purple-100 p-2 text-purple-600">
               <Settings size={24} />
             </div>
-            <h3 className="mb-3 text-lg font-semibold text-kepli-darkGray">Custom Workflows</h3>
+            <h3 className="mb-3 text-lg font-semibold text-kepli-darkGray">Automotive Workflows</h3>
             <p className="text-center text-kepli-gray lg:text-left">
-              Create customized processes that match your business needs
+              Create customized processes that match your dealership's sales and service needs
             </p>
           </div>
         </div>

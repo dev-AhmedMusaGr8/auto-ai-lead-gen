@@ -35,7 +35,7 @@ const Navbar = () => {
               <rect width="24" height="24" rx="6" fill="#6366F1" />
               <path d="M7.5 7.5H12.5L16.5 12L12.5 16.5H7.5V7.5Z" fill="white" />
             </svg>
-            Kepli
+            AutoCRMAI
           </span>
         </a>
         

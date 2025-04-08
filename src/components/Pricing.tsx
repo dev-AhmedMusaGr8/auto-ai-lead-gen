@@ -6,13 +6,13 @@ import { Check } from "lucide-react";
 const pricingPlans = [
   {
     name: "Basic",
-    price: "$19",
-    description: "Perfect for small businesses",
+    price: "$199",
+    description: "Perfect for small dealerships",
     features: [
       "Up to 5 user accounts",
-      "Basic customer management",
+      "Basic lead management",
       "Email integration",
-      "Live chat support",
+      "Limited AI recommendations",
       "Mobile access",
     ],
     cta: "Start Free Trial",
@@ -21,13 +21,13 @@ const pricingPlans = [
   },
   {
     name: "Professional",
-    price: "$49",
-    description: "Best for growing companies",
+    price: "$499",
+    description: "Best for growing dealerships",
     features: [
       "Up to 25 user accounts",
-      "Advanced customer profiles",
+      "Advanced lead tracking",
       "Multichannel integration",
-      "Workflow automation",
+      "Full AI recommendations",
       "Custom reports and analytics",
       "24/7 priority support",
     ],
@@ -37,8 +37,8 @@ const pricingPlans = [
   },
   {
     name: "Enterprise",
-    price: "$99",
-    description: "For large organizations",
+    price: "$999",
+    description: "For multi-location groups",
     features: [
       "Unlimited user accounts",
       "Enterprise-grade security",
@@ -46,7 +46,7 @@ const pricingPlans = [
       "Custom integrations",
       "Dedicated account manager",
       "White-label options",
-      "Advanced analytics",
+      "Multi-location management",
     ],
     cta: "Contact Sales",
     highlighted: false,
@@ -59,10 +59,10 @@ const Pricing = () => {
     <section id="pricing" className="bg-white py-20">
       <div className="container mx-auto px-4">
         <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
-          Flexible Plans for Teams of All Sizes
+          Flexible Plans for Dealerships of All Sizes
         </h2>
         <p className="mx-auto mb-12 max-w-2xl text-center text-kepli-gray">
-          Choose the perfect plan for your business needs
+          Choose the perfect plan for your automotive business needs
         </p>
 
         <div className="grid gap-8 md:grid-cols-3">

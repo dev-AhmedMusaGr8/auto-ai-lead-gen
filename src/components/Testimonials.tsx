@@ -4,39 +4,39 @@ import { Card, CardContent } from "@/components/ui/card";
 const testimonials = [
   {
     stars: 5,
-    quote: "Kepli has transformed how we handle customer communication. The unified inbox saves us hours every day.",
+    quote: "AutoCRMAI has transformed how we handle customer leads. The AI-powered recommendations have increased our conversion rate by 35%.",
     author: "Michael Rodriguez",
-    title: "Customer Service Manager",
+    title: "Sales Manager, AutoWorld Dealership",
   },
   {
     stars: 5,
-    quote: "The multichannel capabilities let us meet customers wherever they are. Our satisfaction rates have increased by 37%.",
+    quote: "The inventory integration lets us match customers with vehicles instantly. Our satisfaction rates have increased significantly since implementation.",
     author: "Sarah Chen",
-    title: "Marketing Director",
+    title: "Marketing Director, LuxCars",
   },
   {
     stars: 5,
-    quote: "The automation tools have streamlined our workflows and freed up our team to focus on what matters most.",
+    quote: "The automation tools have streamlined our follow-up process and freed up our sales team to focus on what matters most - selling cars.",
     author: "David Thompson",
-    title: "Operations Manager",
+    title: "Operations Manager, City Motors",
   },
   {
     stars: 5,
-    quote: "Implementing Kepli was seamless. The customer support team guided us every step of the way.",
+    quote: "Implementing AutoCRMAI was seamless. The customer support team guided us every step of the way with automotive-specific knowledge.",
     author: "Emily Johnson",
-    title: "IT Director",
+    title: "IT Director, Premium Auto Group",
   },
   {
     stars: 5,
-    quote: "The insights we get from the analytics dashboard help us make data-driven decisions about our customer service.",
+    quote: "The insights we get from the analytics dashboard help us make data-driven decisions about our inventory and marketing strategy.",
     author: "Alex Rivera",
-    title: "Business Analyst",
+    title: "Business Analyst, ValueDrive",
   },
   {
     stars: 5,
-    quote: "Kepli is intuitive and user-friendly. Our team needed minimal training to get started.",
+    quote: "AutoCRMAI is intuitive and user-friendly. Our sales team needed minimal training to get started and saw benefits right away.",
     author: "Jessica Williams",
-    title: "Team Lead",
+    title: "Team Lead, AutoExcellence",
   },
 ];
 
@@ -45,15 +45,15 @@ const Testimonials = () => {
     <section className="bg-white py-20" id="testimonials">
       <div className="container mx-auto px-4">
         <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
-          What Our Customers Are Saying
+          What Our Dealerships Are Saying
         </h2>
         <p className="mx-auto mb-16 max-w-2xl text-center text-kepli-gray">
-          Trusted by thousands of companies worldwide
+          Trusted by automotive businesses nationwide
         </p>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((testimonial, index) => (
-            <Card key={index} className="border border-gray-100 shadow-sm">
+            <Card key={index} className="border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
               <CardContent className="p-6">
                 <div className="mb-3 flex">
                   {Array(testimonial.stars).fill(null).map((_, i) => (

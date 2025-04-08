@@ -9,7 +9,7 @@ const ManagementSection = () => {
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
           <div className="flex flex-col justify-center">
             <h2 className="mb-6 text-3xl font-bold text-kepli-darkGray">
-              Easy Way to Manage Your Customers with Kepli
+              Easy Way to Manage Your Dealership with AutoCRMAI
             </h2>
             
             <div className="space-y-4">
@@ -19,7 +19,7 @@ const ManagementSection = () => {
                 </div>
                 <div>
                   <p className="text-kepli-darkGray">
-                    Organize and manage all your customer communication in one platform
+                    Organize and manage leads, prospects, and customers in one platform
                   </p>
                 </div>
               </div>
@@ -30,7 +30,7 @@ const ManagementSection = () => {
                 </div>
                 <div>
                   <p className="text-kepli-darkGray">
-                    Access customer conversations from any channel - email, chat, social
+                    Access customer conversations from any channel - email, SMS, social
                   </p>
                 </div>
               </div>
@@ -41,7 +41,7 @@ const ManagementSection = () => {
                 </div>
                 <div>
                   <p className="text-kepli-darkGray">
-                    Track customer journey and provide personalized experiences
+                    Track customer journey from first contact to purchase and service
                   </p>
                 </div>
               </div>

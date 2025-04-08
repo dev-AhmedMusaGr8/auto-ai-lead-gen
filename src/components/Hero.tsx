@@ -1,7 +1,10 @@
 
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Hero = () => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="relative overflow-hidden bg-white pt-20">
       <div className="kepli-gradient absolute inset-0 z-0"></div>
@@ -13,14 +16,17 @@ const Hero = () => {
             <div className="h-8 w-8 rounded-full bg-green-100 border border-green-300"></div>
           </div>
           <h1 className="mb-6 text-4xl font-bold text-kepli-darkGray max-w-3xl md:text-5xl">
-            Simplify Your Customer Communication Across Every Channel
+            AI-Powered CRM for the Automotive Industry
           </h1>
           <p className="mb-8 max-w-2xl text-kepli-gray text-lg">
-            Connect with customers across multiple channels and streamline all your conversations in one powerful CRM platform.
+            Streamline your dealership operations, boost sales performance, and deliver exceptional customer experiences with our intelligent automotive CRM solution.
           </p>
           <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
             <Button size="lg" className="bg-kepli-purple hover:bg-kepli-darkPurple rounded-lg">
-              Get Started Free
+              Start Free Trial
+            </Button>
+            <Button size="lg" variant="outline" className="border-kepli-purple text-kepli-purple hover:bg-kepli-purple/5 rounded-lg">
+              Book a Demo
             </Button>
           </div>
         </div>
@@ -29,7 +35,7 @@ const Hero = () => {
           <div className="rounded-xl bg-white p-4 shadow-lg">
             <img
               src="/lovable-uploads/8a731499-4ec2-47bf-a2a1-66c79a2e95d5.png"
-              alt="Kepli Dashboard"
+              alt="AutoCRMAI Dashboard"
               className="w-full rounded-lg shadow-sm"
             />
           </div>

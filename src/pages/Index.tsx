@@ -10,6 +10,7 @@ import Integrations from "@/components/Integrations";
 import FAQ from "@/components/FAQ";
 import ContactForm from "@/components/ContactForm";
 import Footer from "@/components/Footer";
+import HowItWorks from "@/components/HowItWorks";
 
 const Index = () => {
   return (
@@ -19,6 +20,7 @@ const Index = () => {
         <Hero />
         <Features />
         <Management />
+        <HowItWorks />
         <CustomerExperience />
         <Testimonials />
         <Pricing />

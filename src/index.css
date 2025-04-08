@@ -123,6 +123,7 @@
   .feature-card-hover:hover {
     border: 1px solid #E0E7FF;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
   }
   
   .kepli-gradient {
@@ -135,5 +136,16 @@
   
   .platform-circle {
     box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 2.25rem;
+    }
+    
+    h2 {
+      font-size: 1.875rem;
+    }
   }
 }
