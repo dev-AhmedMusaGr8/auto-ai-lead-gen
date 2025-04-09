@@ -138,6 +138,20 @@
     box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
   }
 
+  /* Logo animation */
+  @keyframes slide {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-100% / 2));
+    }
+  }
+
+  .animate-slide {
+    animation: slide 30s linear infinite;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
     h1 {

@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Hero = () => {
   const isMobile = useIsMobile();
@@ -8,12 +9,24 @@ const Hero = () => {
   return (
     <div className="relative overflow-hidden bg-white pt-10">
       <div className="kepli-gradient absolute inset-0 z-0"></div>
-      <div className="container relative z-10 mx-auto px-4 py-12 md:py-20">
+      <div className="container relative z-10 mx-auto px-4 py-12 md:py-16">
         <div className="flex flex-col items-center text-center mx-auto max-w-4xl mb-12">
-          <div className="mb-8 flex space-x-3">
-            <div className="h-10 w-10 rounded-full bg-yellow-100 border border-yellow-300"></div>
-            <div className="h-10 w-10 rounded-full bg-blue-100 border border-blue-300"></div>
-            <div className="h-10 w-10 rounded-full bg-green-100 border border-green-300"></div>
+          <div className="mb-8 flex -space-x-3">
+            <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+              <AvatarImage src="https://images.unsplash.com/photo-1491349174775-aaafddd81942?w=400&auto=format&fit=crop&q=80" alt="Avatar 1" />
+              <AvatarFallback>SC</AvatarFallback>
+            </Avatar>
+            <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+              <AvatarImage src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&auto=format&fit=crop&q=80" alt="Avatar 2" />
+              <AvatarFallback>JM</AvatarFallback>
+            </Avatar>
+            <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+              <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&auto=format&fit=crop&q=80" alt="Avatar 3" />
+              <AvatarFallback>AJ</AvatarFallback>
+            </Avatar>
+            <span className="flex items-center pl-3 text-sm font-medium text-kepli-darkGray">
+              1000+ sales persons
+            </span>
           </div>
           <h1 className="mb-6 text-5xl font-bold text-kepli-darkGray max-w-3xl leading-tight md:text-6xl">
             AI-Powered CRM for the Automotive Industry
@@ -42,7 +55,7 @@ const Hero = () => {
         </div>
       </div>
       
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-6">
           {Array(6).fill(null).map((_, i) => (
             <div key={i} className="flex items-center justify-center opacity-60">

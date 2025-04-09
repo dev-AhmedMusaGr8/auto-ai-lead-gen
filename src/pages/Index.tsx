@@ -1,6 +1,7 @@
 
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import DealershipLogos from "@/components/DealershipLogos";
 import Features from "@/components/Features";
 import Management from "@/components/Management";
 import CustomerExperience from "@/components/CustomerExperience";
@@ -18,6 +19,7 @@ const Index = () => {
       <Navbar />
       <main className="max-w-[1920px] mx-auto">
         <Hero />
+        <DealershipLogos />
         <div className="px-4 md:px-8 lg:px-16 xl:px-24">
           <Features />
           <Management />
