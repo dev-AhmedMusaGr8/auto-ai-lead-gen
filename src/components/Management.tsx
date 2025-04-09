@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 
 const ManagementSection = () => {
   return (
-    <section className="bg-white py-20">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
+    <section className="py-16 md:py-20">
+      <div className="mx-auto max-w-[1200px]">
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <div className="flex flex-col justify-center">
             <h2 className="mb-6 text-3xl font-bold text-kepli-darkGray">
               Easy Way to Manage Your Dealership with AutoCRMAI

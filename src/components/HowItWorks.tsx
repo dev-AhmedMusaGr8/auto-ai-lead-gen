@@ -3,18 +3,18 @@ import { Button } from "@/components/ui/button";
 
 const HowItWorks = () => {
   return (
-    <section className="bg-gray-50 py-20">
-      <div className="container mx-auto px-4">
+    <section className="py-16 md:py-20">
+      <div className="mx-auto max-w-[1200px]">
         <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
           How AutoCRMAI Works
         </h2>
-        <p className="mx-auto mb-16 max-w-2xl text-center text-lg text-kepli-gray">
+        <p className="mx-auto mb-12 max-w-2xl text-center text-lg text-kepli-gray">
           Simple, streamlined, and built specifically for automotive professionals
         </p>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-3">
           <div className="rounded-lg bg-white p-6 shadow-sm transition-all hover:shadow-md">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-kepli-purple text-2xl font-bold text-white">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-kepli-purple text-2xl font-bold text-white">
               1
             </div>
             <h3 className="mb-3 text-xl font-semibold text-kepli-darkGray">Connect Your Data</h3>
@@ -24,7 +24,7 @@ const HowItWorks = () => {
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow-sm transition-all hover:shadow-md">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-kepli-purple text-2xl font-bold text-white">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-kepli-purple text-2xl font-bold text-white">
               2
             </div>
             <h3 className="mb-3 text-xl font-semibold text-kepli-darkGray">Activate AI Insights</h3>
@@ -34,7 +34,7 @@ const HowItWorks = () => {
           </div>
 
           <div className="rounded-lg bg-white p-6 shadow-sm transition-all hover:shadow-md">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-kepli-purple text-2xl font-bold text-white">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-kepli-purple text-2xl font-bold text-white">
               3
             </div>
             <h3 className="mb-3 text-xl font-semibold text-kepli-darkGray">Grow Your Business</h3>
@@ -44,7 +44,7 @@ const HowItWorks = () => {
           </div>
         </div>
 
-        <div className="mt-16 text-center">
+        <div className="mt-12 text-center">
           <Button 
             size="lg" 
             className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-8 py-3 h-12 font-medium shadow-md"

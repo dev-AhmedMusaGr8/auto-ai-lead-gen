@@ -14,19 +14,21 @@ import HowItWorks from "@/components/HowItWorks";
 
 const Index = () => {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-hidden">
       <Navbar />
-      <main>
+      <main className="max-w-[1920px] mx-auto">
         <Hero />
-        <Features />
-        <Management />
-        <HowItWorks />
-        <CustomerExperience />
-        <Testimonials />
-        <Pricing />
-        <Integrations />
-        <FAQ />
-        <ContactForm />
+        <div className="px-4 md:px-8 lg:px-16 xl:px-24">
+          <Features />
+          <Management />
+          <HowItWorks />
+          <CustomerExperience />
+          <Testimonials />
+          <Pricing />
+          <Integrations />
+          <FAQ />
+          <ContactForm />
+        </div>
       </main>
       <Footer />
     </div>
