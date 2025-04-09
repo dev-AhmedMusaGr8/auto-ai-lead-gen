@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const HowItWorks = () => {
   return (
-    <section className="py-16 md:py-20">
+    <section>
       <div className="mx-auto max-w-[1200px]">
         <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
           How AutoCRMAI Works

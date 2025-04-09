@@ -54,16 +54,6 @@ const Hero = () => {
           </div>
         </div>
       </div>
-      
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:grid-cols-6">
-          {Array(6).fill(null).map((_, i) => (
-            <div key={i} className="flex items-center justify-center opacity-60">
-              <div className="h-8 w-24 bg-gray-200 rounded"></div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };

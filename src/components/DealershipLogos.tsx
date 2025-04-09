@@ -1,5 +1,4 @@
 
-import { useEffect } from "react";
 import { 
   Carousel,
   CarouselContent,
@@ -7,14 +6,14 @@ import {
 } from "@/components/ui/carousel";
 
 const dealerships = [
-  { name: "AutoNation", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=AutoNation" },
-  { name: "CarMax", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=CarMax" },
-  { name: "Penske", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=Penske" },
-  { name: "Group 1", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=Group+1" },
-  { name: "Sonic", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=Sonic" },
-  { name: "Hendrick", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=Hendrick" },
-  { name: "Lithia", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=Lithia" },
-  { name: "Autonovo", logo: "https://via.placeholder.com/150x50/eeeeee/444444?text=Autonovo" },
+  { name: "AutoNation", logo: "https://logo.clearbit.com/autonation.com" },
+  { name: "CarMax", logo: "https://logo.clearbit.com/carmax.com" },
+  { name: "Penske", logo: "https://logo.clearbit.com/penskeautomotive.com" },
+  { name: "Group 1", logo: "https://logo.clearbit.com/group1auto.com" },
+  { name: "Sonic", logo: "https://logo.clearbit.com/sonicautomotive.com" },
+  { name: "Hendrick", logo: "https://logo.clearbit.com/hendrickauto.com" },
+  { name: "Lithia", logo: "https://logo.clearbit.com/lithiamotors.com" },
+  { name: "Autonovo", logo: "https://logo.clearbit.com/autonovo.com" },
 ];
 
 const DealershipLogos = () => {
@@ -42,6 +41,10 @@ const DealershipLogos = () => {
                     src={dealership.logo} 
                     alt={`${dealership.name} logo`} 
                     className="h-8 md:h-10 w-auto object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = `https://via.placeholder.com/150x50/eeeeee/444444?text=${dealership.name}`;
+                    }}
                   />
                 </div>
               </CarouselItem>

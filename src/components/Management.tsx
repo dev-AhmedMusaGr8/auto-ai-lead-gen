@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 const ManagementSection = () => {
   return (
-    <section className="py-16 md:py-20">
+    <section>
       <div className="mx-auto max-w-[1200px]">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
           <div className="flex flex-col justify-center">
@@ -48,7 +48,7 @@ const ManagementSection = () => {
             </div>
             
             <div className="mt-8">
-              <Button className="bg-kepli-purple hover:bg-kepli-darkPurple text-white rounded-lg">
+              <Button className="btn-primary">
                 Learn More
               </Button>
             </div>

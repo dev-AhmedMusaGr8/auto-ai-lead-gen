@@ -56,7 +56,7 @@ const pricingPlans = [
 
 const Pricing = () => {
   return (
-    <section id="pricing" className="bg-white py-20">
+    <section id="pricing">
       <div className="container mx-auto px-4">
         <h2 className="mb-2 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
           Flexible Plans for Dealerships of All Sizes
@@ -106,7 +106,7 @@ const Pricing = () => {
                 <Button
                   className={`w-full ${
                     plan.highlighted
-                      ? "bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium"
+                      ? "btn-primary"
                       : "bg-white border-2 border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-6 py-2 h-10 font-medium"
                   }`}
                 >

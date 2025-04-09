@@ -30,7 +30,7 @@ const featureGroups = [
 
 const Features = () => {
   return (
-    <section id="features" className="py-20 bg-white">
+    <section id="features">
       <div className="container mx-auto px-4">
         <h2 className="mb-6 text-center text-3xl font-bold text-kepli-darkGray md:text-4xl">
           Everything You Need to Manage Your Dealership Efficiently

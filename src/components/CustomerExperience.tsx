@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 const CustomerExperience = () => {
   return (
-    <section className="bg-white py-20">
+    <section>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2">
           <div className="relative order-2 lg:order-1">
@@ -109,7 +109,7 @@ const CustomerExperience = () => {
             </div>
             
             <div className="mt-8">
-              <Button className="bg-kepli-purple hover:bg-kepli-darkPurple text-white rounded-lg">
+              <Button className="btn-primary">
                 Start Improving Experience
               </Button>
             </div>

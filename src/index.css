@@ -152,6 +152,20 @@
     animation: slide 30s linear infinite;
   }
 
+  /* Button consistency */
+  .btn-primary {
+    @apply bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-8 py-3 h-12 font-medium shadow-md;
+  }
+
+  .btn-outline {
+    @apply border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-8 py-3 h-12 font-medium;
+  }
+
+  /* Section titles */
+  .section-title {
+    @apply text-[#8B5CF6] text-sm font-semibold tracking-wider uppercase;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
     h1 {
@@ -162,4 +176,14 @@
       font-size: 1.875rem;
     }
   }
+}
+
+/* Footer styles */
+.footer-container {
+  @apply bg-[#1E293B] text-white rounded-t-3xl mt-8 py-12 px-6 md:px-12 lg:px-16;
+}
+
+/* Font settings */
+.font-inter {
+  font-family: 'Inter', sans-serif;
 }
