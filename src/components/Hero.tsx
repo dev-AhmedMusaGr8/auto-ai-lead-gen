@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const isMobile = useIsMobile();
@@ -35,9 +36,11 @@ const Hero = () => {
             Streamline your dealership operations, boost sales performance, and deliver exceptional customer experiences with our intelligent automotive CRM solution.
           </p>
           <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-6 sm:space-y-0">
-            <Button size="lg" className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-8 py-3 h-12 font-medium shadow-md">
-              Start Free Trial
-            </Button>
+            <Link to="/signin">
+              <Button size="lg" className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-8 py-3 h-12 font-medium shadow-md">
+                Start Free Trial
+              </Button>
+            </Link>
             <Button size="lg" variant="outline" className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-8 py-3 h-12 font-medium">
               Book a Demo
             </Button>

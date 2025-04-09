@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -67,17 +68,19 @@ const Navbar = () => {
         </div>
         
         <div className="hidden items-center gap-4 md:flex">
-          <a 
-            href="#" 
+          <Link 
+            to="/signin" 
             className="font-medium text-kepli-gray hover:text-kepli-purple"
           >
             Login
-          </a>
-          <Button 
-            className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium"
-          >
-            Sign Up Free
-          </Button>
+          </Link>
+          <Link to="/signin">
+            <Button 
+              className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium"
+            >
+              Sign Up Free
+            </Button>
+          </Link>
         </div>
         
         <button
@@ -109,12 +112,14 @@ const Navbar = () => {
               Resources
             </a>
             <div className="flex flex-col gap-2 border-t border-gray-200 pt-2">
-              <a href="#" className="font-medium text-kepli-darkGray">
+              <Link to="/signin" className="font-medium text-kepli-darkGray">
                 Login
-              </a>
-              <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium w-full">
-                Sign Up Free
-              </Button>
+              </Link>
+              <Link to="/signin">
+                <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-6 py-2 h-10 font-medium w-full">
+                  Sign Up Free
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
