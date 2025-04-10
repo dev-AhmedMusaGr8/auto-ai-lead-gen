@@ -13,7 +13,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, TooltipProps } from "recharts";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("chart");
@@ -209,7 +209,14 @@ const Dashboard = () => {
   );
 };
 
-const CustomTooltip = ({ active, payload, label }) => {
+// Define the proper type for the CustomTooltip props
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+};
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 border rounded shadow-lg text-sm">
