@@ -185,7 +185,7 @@ const DashboardLayout = () => {
                 </div>
               )}
             </div>
-            <div className="flex-1 flex flex-col overflow-y-auto">
+            <div className="flex-1 flex flex-col overflow-hidden">
               <nav className="flex-1 px-2 py-4 space-y-2">
                 {navigation.map((item) => (
                   <a
@@ -223,8 +223,8 @@ const DashboardLayout = () => {
                 {!sidebarCollapsed && "Logout"}
               </Button>
               
-              {/* Collapse button moved to bottom */}
-              <div className="mt-6 flex justify-center">
+              {/* Collapse button moved to bottom with right alignment when expanded */}
+              <div className={`mt-6 flex ${sidebarCollapsed ? 'justify-center' : 'justify-end'}`}>
                 <Button 
                   variant="ghost" 
                   size="icon" 
@@ -239,7 +239,7 @@ const DashboardLayout = () => {
         </div>
       </div>
 
-      <div className={`flex flex-col w-0 flex-1 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'md:ml-20' : 'md:ml-64'}`}>
+      <div className="flex flex-col w-0 flex-1 overflow-hidden">
         <div className="md:hidden pl-1 pt-1 sm:pl-3 sm:pt-3 flex items-center">
           <button
             className="-ml-0.5 -mt-0.5 h-12 w-12 inline-flex items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none"
