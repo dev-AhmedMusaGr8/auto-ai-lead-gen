@@ -26,7 +26,6 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
-  const isTablet = window.innerWidth >= 768 && window.innerWidth <= 1024 && window.innerHeight > window.innerWidth;
   
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
@@ -34,15 +33,30 @@ const DashboardLayout = () => {
       navigate("/signin");
     }
 
-    // Set sidebar collapsed by default on tablet portrait mode
-    if (isTablet) {
+    // Function to detect tablet landscape mode
+    const isTabletLandscape = () => {
+      return (
+        (window.innerWidth >= 768 && window.innerWidth <= 1024) && 
+        (window.innerWidth > window.innerHeight)
+      );
+    };
+    
+    // Function to detect tablet portrait mode
+    const isTabletPortrait = () => {
+      return (
+        (window.innerWidth >= 768 && window.innerWidth <= 1024) && 
+        (window.innerWidth < window.innerHeight)
+      );
+    };
+
+    // Set sidebar collapsed by default on tablet landscape mode
+    if (isTabletLandscape() || isTabletPortrait()) {
       setSidebarCollapsed(true);
     }
 
-    // Listen for orientation changes
+    // Listen for orientation and resize changes
     const handleResize = () => {
-      const isTabletPortrait = window.innerWidth >= 768 && window.innerWidth <= 1024 && window.innerHeight > window.innerWidth;
-      if (isTabletPortrait) {
+      if (isTabletLandscape() || isTabletPortrait()) {
         setSidebarCollapsed(true);
       } else if (window.innerWidth > 1024) {
         setSidebarCollapsed(false);
@@ -134,7 +148,7 @@ const DashboardLayout = () => {
               </div>
               <Button
                 variant="outline"
-                className="mt-4 w-full flex items-center text-gray-300 border-gray-600 hover:bg-transparent hover:text-white hover:border-white"
+                className="mt-4 w-full flex items-center text-red-400 border-gray-600 hover:bg-transparent hover:text-red-300 hover:border-red-300"
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -149,38 +163,25 @@ const DashboardLayout = () => {
       <div className={`hidden md:flex md:flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'md:w-20' : 'md:w-64'}`}>
         <div className="flex flex-col w-full">
           <div className="flex flex-col h-0 flex-1 bg-[#1A1F2C]">
-            <div className="flex items-center h-16 flex-shrink-0 px-4 bg-[#1A1F2C] justify-between">
-              {!sidebarCollapsed && (
-                <>
-                  <div className="flex items-center">
-                    <div className="bg-[#6366F1] p-1 rounded-lg mr-2">
-                      <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="24" height="24" rx="6" fill="#6366F1" />
-                        <path d="M7.5 7.5H12.5L16.5 12L12.5 16.5H7.5V7.5Z" fill="white" />
-                      </svg>
-                    </div>
-                    <span className="text-xl font-bold text-white">AutoCRMAI</span>
+            <div className="flex items-center h-16 flex-shrink-0 px-4 bg-[#1A1F2C]">
+              {!sidebarCollapsed ? (
+                <div className="flex items-center">
+                  <div className="bg-[#6366F1] p-1 rounded-lg mr-2">
+                    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="24" height="24" rx="6" fill="#6366F1" />
+                      <path d="M7.5 7.5H12.5L16.5 12L12.5 16.5H7.5V7.5Z" fill="white" />
+                    </svg>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleSidebarCollapse}
-                    className="text-gray-300 hover:text-white"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                </>
-              )}
-              {sidebarCollapsed && (
+                  <span className="text-xl font-bold text-white">AutoCRMAI</span>
+                </div>
+              ) : (
                 <div className="flex justify-center w-full">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={toggleSidebarCollapse}
-                    className="text-gray-300 hover:text-white"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
+                  <div className="bg-[#6366F1] p-1 rounded-lg">
+                    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="24" height="24" rx="6" fill="#6366F1" />
+                      <path d="M7.5 7.5H12.5L16.5 12L12.5 16.5H7.5V7.5Z" fill="white" />
+                    </svg>
+                  </div>
                 </div>
               )}
             </div>
@@ -202,47 +203,38 @@ const DashboardLayout = () => {
                 ))}
               </nav>
             </div>
-            {!sidebarCollapsed && (
-              <div className="flex-shrink-0 border-t border-gray-700 p-4">
-                <div className="space-y-2">
-                  <a href="#settings" className="group flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-300 hover:bg-[#2D3748] hover:text-white">
-                    <Settings className="mr-3 h-5 w-5" />
-                    Settings
-                  </a>
-                  <a href="#help" className="group flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-300 hover:bg-[#2D3748] hover:text-white">
-                    <HelpCircle className="mr-3 h-5 w-5" />
-                    Help & Support
-                  </a>
-                </div>
-                <Button
-                  variant="outline"
-                  className="mt-4 w-full flex items-center justify-center text-gray-300 border-gray-600 hover:bg-transparent hover:text-white hover:border-white"
-                  onClick={handleLogout}
+            <div className="flex-shrink-0 border-t border-gray-700 p-4">
+              <div className="space-y-2">
+                <a href="#settings" className="group flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-300 hover:bg-[#2D3748] hover:text-white">
+                  <Settings className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5`} />
+                  {!sidebarCollapsed && <span>Settings</span>}
+                </a>
+                <a href="#help" className="group flex items-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-300 hover:bg-[#2D3748] hover:text-white">
+                  <HelpCircle className={`${sidebarCollapsed ? '' : 'mr-3'} h-5 w-5`} />
+                  {!sidebarCollapsed && <span>Help & Support</span>}
+                </a>
+              </div>
+              <Button
+                variant="outline"
+                className={`mt-4 w-full flex items-center justify-center text-red-400 border-gray-600 hover:bg-transparent hover:text-red-300 hover:border-red-300 ${sidebarCollapsed ? 'p-2' : ''}`}
+                onClick={handleLogout}
+              >
+                <LogOut className={`${sidebarCollapsed ? '' : 'mr-2'} h-4 w-4`} />
+                {!sidebarCollapsed && "Logout"}
+              </Button>
+              
+              {/* Collapse button moved to bottom */}
+              <div className="mt-6 flex justify-center">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={toggleSidebarCollapse}
+                  className="text-gray-300 hover:text-white"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
                 </Button>
               </div>
-            )}
-            {sidebarCollapsed && (
-              <div className="flex-shrink-0 border-t border-gray-700 p-4">
-                <div className="space-y-2">
-                  <a href="#settings" className="group flex items-center justify-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-300 hover:bg-[#2D3748] hover:text-white">
-                    <Settings className="h-5 w-5" />
-                  </a>
-                  <a href="#help" className="group flex items-center justify-center px-3 py-2.5 text-sm font-medium rounded-md text-gray-300 hover:bg-[#2D3748] hover:text-white">
-                    <HelpCircle className="h-5 w-5" />
-                  </a>
-                </div>
-                <Button
-                  variant="outline"
-                  className="mt-4 w-full flex items-center justify-center text-gray-300 border-gray-600 hover:bg-transparent hover:text-white hover:border-white"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
