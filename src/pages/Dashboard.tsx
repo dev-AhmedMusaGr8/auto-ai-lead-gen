@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Users, Building2, TrendingUp, Search, Bell } from "lucide-react";
+import { DollarSign, Users, Building2, TrendingUp, Search, Bell, Calendar } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Table,
@@ -13,10 +13,18 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, TooltipProps } from "recharts";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("chart");
+  const [date, setDate] = useState<Date>(new Date());
 
   const chartData = [
     { name: "Jan", revenue: 8500, earning: 5600 },
@@ -51,30 +59,34 @@ const Dashboard = () => {
   };
 
   return (
-    <div>
+    <div className="overflow-x-hidden">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="h-5 w-5 absolute left-2.5 top-2.5 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search..." 
-              className="pl-9 pr-4 py-2 rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
+          <div className="relative group">
+            <div className="bg-gray-100 rounded-full p-2 flex items-center transition-all group-hover:w-48 w-10 duration-300">
+              <Search className="h-5 w-5 text-gray-400 absolute left-2.5" />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                className="pl-9 bg-transparent w-full focus:outline-none opacity-0 group-hover:opacity-100 transition-opacity"
+              />
+            </div>
           </div>
-          <div className="relative">
-            <Bell className="h-6 w-6 text-gray-500 cursor-pointer" />
+          <div className="relative bg-gray-100 rounded-full p-2">
+            <Bell className="h-5 w-5 text-gray-500 cursor-pointer" />
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
               3
             </span>
           </div>
-          <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-            <img 
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(JSON.parse(localStorage.getItem("user") || '{"name":"User"}').name)}&background=8B5CF6&color=fff`} 
-              alt="User" 
-              className="h-full w-full object-cover"
-            />
+          <div className="bg-gray-100 rounded-full p-1">
+            <Avatar className="h-8 w-8">
+              <AvatarImage 
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(JSON.parse(localStorage.getItem("user") || '{"name":"User"}').name)}&background=8B5CF6&color=fff`} 
+                alt="User"
+              />
+              <AvatarFallback>U</AvatarFallback>
+            </Avatar>
           </div>
         </div>
       </div>
@@ -110,97 +122,175 @@ const Dashboard = () => {
         />
       </div>
 
-      <Card>
-        <CardHeader className="pb-0">
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-0 flex flex-col md:flex-row md:items-center md:justify-between">
           <Tabs defaultValue="chart" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="w-full sm:w-auto">
-              <TabsTrigger value="chart" className="flex-1 sm:flex-none">Chart Summary</TabsTrigger>
-              <TabsTrigger value="activities" className="flex-1 sm:flex-none">Recent Activities</TabsTrigger>
+            <TabsList className="w-full sm:w-auto bg-transparent p-0 h-auto space-x-6 mb-4">
+              <TabsTrigger value="chart" className="flex-1 sm:flex-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:rounded-none px-0">Chart Summary</TabsTrigger>
+              <TabsTrigger value="activities" className="flex-1 sm:flex-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-purple-500 data-[state=active]:rounded-none px-0">Recent Activities</TabsTrigger>
             </TabsList>
           </Tabs>
+          <div className="md:ml-auto flex items-center mb-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="border border-gray-200 flex items-center h-9 rounded-md">
+                  <CalendarIcon className="h-4 w-4 mr-2 text-gray-500" />
+                  <span>{format(date, "MMMM yyyy")}</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={date}
+                  onSelect={(date) => date && setDate(date)}
+                  className="p-3 pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
         </CardHeader>
         <CardContent className="pt-6">
           {activeTab === "chart" ? (
             <div className="h-[400px] w-full">
               <ChartContainer config={chartConfig}>
-                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                  <Bar dataKey="revenue" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="earning" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                </BarChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend 
+                      wrapperStyle={{ 
+                        paddingTop: 20, 
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: '2rem'
+                      }}
+                      formatter={(value, entry, index) => (
+                        <span className="text-sm font-medium">{value === 'revenue' ? 'Total Revenue' : 'Total Earning'}</span>
+                      )}
+                    />
+                    <Bar dataKey="revenue" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="earning" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </ChartContainer>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Recent Deals</h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Company</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentDeals.map((deal, index) => (
-                      <TableRow key={index}>
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-800">{deal.name}</p>
-                            <p className="text-sm text-gray-500">{deal.company}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(deal.status)}`}>
-                            {deal.status}
-                          </span>
-                        </TableCell>
-                        <TableCell>${deal.value.toLocaleString()}</TableCell>
-                        <TableCell>{deal.date}</TableCell>
+              <Card className="border rounded-lg shadow-sm">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg font-semibold">Recent Deals</CardTitle>
+                    <div className="text-sm text-gray-500">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 border border-gray-200">
+                            <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                            <span className="text-xs">{format(date, "MMM yyyy")}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <CalendarComponent
+                            mode="single"
+                            selected={date}
+                            onSelect={(date) => date && setDate(date)}
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Date</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Recent Contacts</h3>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>S/N</TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentContacts.map((contact, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center mr-3">
-                              {contact.name.charAt(0)}
-                            </div>
+                    </TableHeader>
+                    <TableBody>
+                      {recentDeals.map((deal, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
                             <div>
-                              <p className="font-medium text-gray-800">{contact.name}</p>
-                              <p className="text-sm text-gray-500">{contact.company}</p>
+                              <p className="font-medium text-gray-800">{deal.name}</p>
+                              <p className="text-sm text-gray-500">{deal.company}</p>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{contact.email}</TableCell>
-                        <TableCell>{contact.phone}</TableCell>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(deal.status)}`}>
+                              {deal.status}
+                            </span>
+                          </TableCell>
+                          <TableCell>${deal.value.toLocaleString()}</TableCell>
+                          <TableCell>{deal.date}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+              
+              <Card className="border rounded-lg shadow-sm">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg font-semibold">Recent Contacts</CardTitle>
+                    <div className="text-sm text-gray-500">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-8 border border-gray-200">
+                            <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-gray-500" />
+                            <span className="text-xs">{format(date, "MMM yyyy")}</span>
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                          <CalendarComponent
+                            mode="single"
+                            selected={date}
+                            onSelect={(date) => date && setDate(date)}
+                            className="p-3 pointer-events-auto"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>S/N</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Phone</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {recentContacts.map((contact, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <div className="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center mr-3">
+                                {contact.name.charAt(0)}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-800">{contact.name}</p>
+                                <p className="text-sm text-gray-500">{contact.company}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{contact.email}</TableCell>
+                          <TableCell>{contact.phone}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </div>
           )}
         </CardContent>
