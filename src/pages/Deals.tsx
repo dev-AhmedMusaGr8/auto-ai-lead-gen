@@ -220,27 +220,27 @@ const Deals = () => {
           <Card key={deal.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex justify-between mb-4">
-                <div>
+                <div className="w-3/4">
                   <h3 className="font-semibold text-lg truncate">{deal.name}</h3>
-                  <p className="text-sm text-muted-foreground">{deal.company}</p>
+                  <p className="text-sm text-muted-foreground truncate">{deal.company}</p>
                 </div>
-                <div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(deal.status)}`}>
+                <div className="w-1/4 flex justify-end">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(deal.status)}`}>
                     {deal.status}
                   </span>
                 </div>
               </div>
               <div className="flex flex-col space-y-2 text-sm">
                 <div className="flex items-center">
-                  <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
+                  <DollarSign className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
                   <span>${deal.value.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center">
-                  <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                  <Calendar className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
                   <span>{deal.date}</span>
                 </div>
                 <div className="flex items-center">
-                  <User className="h-4 w-4 mr-2 text-gray-400" />
+                  <User className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
                   <span>John Smith</span>
                 </div>
               </div>

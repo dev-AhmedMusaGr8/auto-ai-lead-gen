@@ -288,7 +288,7 @@ const Companies = () => {
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Industries</SelectItem>
+              <SelectItem value="all">All</SelectItem>
               <SelectItem value="Dealership">Dealership</SelectItem>
               <SelectItem value="Service">Service</SelectItem>
               <SelectItem value="Parts">Parts</SelectItem>
@@ -307,29 +307,29 @@ const Companies = () => {
             <CardContent className="p-6">
               <div className="mb-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg">{company.name}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getIndustryColor(company.industry)}`}>
+                  <h3 className="font-semibold text-lg truncate w-3/4">{company.name}</h3>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getIndustryColor(company.industry)}`}>
                     {company.industry}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground mt-1">{company.description}</p>
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{company.description}</p>
               </div>
               <div className="flex flex-col space-y-2 text-sm">
                 <div className="flex items-center">
-                  <Globe className="h-4 w-4 mr-2 text-gray-400" />
-                  <span>{company.website}</span>
+                  <Globe className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                  <span className="truncate">{company.website}</span>
                 </div>
                 <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                  <span>{company.location}</span>
+                  <MapPin className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                  <span className="truncate">{company.location}</span>
                 </div>
                 <div className="flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                  <span>{company.phone}</span>
+                  <Phone className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                  <span className="truncate">{company.phone}</span>
                 </div>
                 <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-2 text-gray-400" />
-                  <span>{company.employees} employees</span>
+                  <Users className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                  <span className="truncate">{company.employees} employees</span>
                 </div>
               </div>
             </CardContent>
