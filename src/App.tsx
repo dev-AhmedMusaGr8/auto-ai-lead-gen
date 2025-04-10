@@ -13,6 +13,7 @@ import Contacts from "./pages/Contacts";
 import Companies from "./pages/Companies";
 import DashboardLayout from "./components/layouts/DashboardLayout";
 
+// Set up the query client
 const queryClient = new QueryClient();
 
 const App = () => (
