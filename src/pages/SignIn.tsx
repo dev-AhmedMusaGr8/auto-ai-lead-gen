@@ -19,23 +19,37 @@ const SignIn = () => {
     
     // This is a mock authentication - in a real app, you would integrate with an auth service
     if (isLogin) {
-      // Mock login
+      // Mock login for existing users
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("user", JSON.stringify({ email, name: "User" }));
+      
+      // Check if the user has completed onboarding
+      const hasCompletedOnboarding = localStorage.getItem("onboardingCompleted") === "true";
+      
       toast({
         title: "Success",
         description: "Logged in successfully!",
       });
-      navigate("/dashboard");
+      
+      // If they've completed onboarding, go to dashboard, otherwise start onboarding
+      if (hasCompletedOnboarding) {
+        navigate("/dashboard");
+      } else {
+        navigate("/onboarding/welcome");
+      }
     } else {
-      // Mock registration
+      // Mock registration for new users
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("user", JSON.stringify({ email, name }));
+      localStorage.setItem("onboardingCompleted", "false");
+      
       toast({
         title: "Success",
         description: "Account created successfully!",
       });
-      navigate("/dashboard");
+      
+      // New users always go through onboarding
+      navigate("/onboarding/welcome");
     }
   };
 
