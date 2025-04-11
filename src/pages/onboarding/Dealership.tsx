@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Building, Store, Warehouse } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 const Dealership = () => {
   const { setCurrentStep, dealershipName, setDealershipName, dealershipSize, setDealershipSize } = useOnboarding();
@@ -24,77 +25,104 @@ const Dealership = () => {
     navigate('/onboarding/inventory');
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4 }
+    }
+  };
+
   return (
-    <div className="grid md:grid-cols-2 gap-12">
-      <div className="flex flex-col justify-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-kepli-darkGray mb-4">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      <motion.div variants={itemVariants}>
+        <h1 className="text-2xl font-bold text-gray-800 mb-3">
           Tell us about your dealership
         </h1>
-        <p className="text-kepli-gray text-lg mb-8">
-          This helps us customize your experience and provide relevant recommendations.
+        <p className="text-gray-600">
+          This helps us customize your experience and provide relevant features for your business.
         </p>
+      </motion.div>
+      
+      <div className="space-y-6">
+        <motion.div variants={itemVariants} className="space-y-3">
+          <Label htmlFor="dealershipName">Dealership Name</Label>
+          <Input
+            id="dealershipName"
+            placeholder="Enter your dealership name"
+            value={dealershipName}
+            onChange={(e) => setDealershipName(e.target.value)}
+            className={error ? "border-red-500 focus-visible:ring-red-400" : ""}
+          />
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+        </motion.div>
         
-        <div className="space-y-6">
-          <div className="space-y-3">
-            <Label htmlFor="dealershipName">Dealership Name</Label>
-            <Input
-              id="dealershipName"
-              placeholder="Enter your dealership name"
-              value={dealershipName}
-              onChange={(e) => setDealershipName(e.target.value)}
-              className={error ? "border-red-500" : ""}
-            />
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+        <motion.div variants={itemVariants} className="space-y-3">
+          <Label>Dealership Size</Label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { size: 'Small (1-10)', icon: <Store size={20} /> },
+              { size: 'Medium (11-30)', icon: <Building size={20} /> },
+              { size: 'Large (30+)', icon: <Warehouse size={20} /> }
+            ].map(({ size, icon }) => (
+              <Card 
+                key={size} 
+                className={`cursor-pointer transition-all hover:border-[#8B5CF6]/70 hover:shadow-sm ${
+                  dealershipSize === size ? 'border-[#8B5CF6] bg-[#8B5CF6]/5 shadow-sm' : ''
+                }`}
+                onClick={() => setDealershipSize(size)}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className={`text-${dealershipSize === size ? '[#8B5CF6]' : 'gray-500'}`}>
+                    {icon}
+                  </div>
+                  <p className="font-medium text-gray-800">{size}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          
-          <div className="space-y-3">
-            <Label>Dealership Size</Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {['Small (1-10)', 'Medium (11-30)', 'Large (30+)'].map((size) => (
-                <Card 
-                  key={size} 
-                  className={`cursor-pointer transition-all hover:shadow-md ${dealershipSize === size ? 'border-[#8B5CF6] shadow-md' : ''}`}
-                  onClick={() => setDealershipSize(size)}
-                >
-                  <CardContent className="p-4 flex items-center justify-center">
-                    <p className="font-medium text-center">{size}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <Label>Primary Business Focus</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {['New Vehicles', 'Used Vehicles', 'Both', 'Service & Parts'].map((focus) => (
-                <Card key={focus} className="cursor-pointer transition-all hover:shadow-md">
-                  <CardContent className="p-4 flex items-center justify-center">
-                    <p className="font-medium text-center">{focus}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </div>
+        </motion.div>
         
+        <motion.div variants={itemVariants} className="space-y-3">
+          <Label>Primary Business Focus</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {['New Vehicles', 'Used Vehicles', 'Both', 'Service & Parts'].map((focus) => (
+              <Card key={focus} className="cursor-pointer transition-all hover:border-[#8B5CF6]/70 hover:shadow-sm">
+                <CardContent className="p-4 flex items-center justify-center">
+                  <p className="font-medium text-center text-gray-800">{focus}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+      
+      <motion.div variants={itemVariants} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="mt-10 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md px-6 py-2 h-12 font-medium flex items-center justify-center gap-2 w-full md:w-auto"
+          className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
         >
           Continue
           <ArrowRight size={16} />
         </Button>
-      </div>
-      
-      <div className="hidden md:flex items-center justify-center">
-        <img 
-          src="https://images.unsplash.com/photo-1626180738812-4db4936bbc8e?w=800&auto=format&fit=crop&q=80" 
-          alt="Modern car dealership" 
-          className="rounded-lg shadow-xl max-w-full h-auto object-cover"
-        />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

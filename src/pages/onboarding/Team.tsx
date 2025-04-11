@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, User, Users } from "lucide-react";
+import { ArrowRight, Plus, User, Users, AlertCircle } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
+import { motion } from "framer-motion";
 
 const Team = () => {
   const { setCurrentStep } = useOnboarding();
@@ -16,89 +17,119 @@ const Team = () => {
     navigate('/onboarding/complete');
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.15
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4 }
+    }
+  };
+
   return (
-    <div className="grid md:grid-cols-2 gap-12">
-      <div className="flex flex-col justify-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-kepli-darkGray mb-4">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      <motion.div variants={itemVariants}>
+        <h1 className="text-2xl font-bold text-gray-800 mb-3">
           Invite your team
         </h1>
-        <p className="text-kepli-gray text-lg mb-8">
-          Collaborate with your sales, service, and management teams to maximize your dealership's potential.
+        <p className="text-gray-600">
+          Add team members to collaborate with you. They'll receive an email invitation to join your dealership.
         </p>
+      </motion.div>
+      
+      <motion.div variants={itemVariants} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <div className="flex gap-2">
+            <Input id="email" placeholder="Enter team member's email" className="flex-1" />
+            <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED]">
+              <Plus className="h-4 w-4 mr-1" />
+              Add
+            </Button>
+          </div>
+        </div>
         
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email Address</Label>
-            <div className="flex gap-2">
-              <Input id="email" placeholder="Enter team member's email" className="flex-1" />
-              <Button className="bg-[#8B5CF6] hover:bg-[#7C3AED]">
-                <Plus className="h-4 w-4" />
-                Add
-              </Button>
-            </div>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="font-medium text-gray-800">Invited Team Members</h3>
           </div>
           
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium">Invited Team Members</h3>
-            </div>
-            
-            <div className="space-y-3 border rounded-lg p-4 bg-white">
-              <div className="flex justify-between items-center py-2">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <User className="h-6 w-6" />
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">sales@example.com</p>
-                    <p className="text-sm text-kepli-gray">Sales Team</p>
+          <motion.div
+            className="space-y-3 border rounded-lg p-4 bg-white"
+            variants={{
+              hidden: { opacity: 0, height: 0 },
+              visible: { 
+                opacity: 1,
+                height: 'auto',
+                transition: { duration: 0.4, delay: 0.2 }
+              }
+            }}
+          >
+            {[
+              {
+                email: "sales@example.com",
+                role: "Sales Team"
+              },
+              {
+                email: "service@example.com",
+                role: "Service Department"
+              }
+            ].map((member, index) => (
+              <React.Fragment key={member.email}>
+                {index > 0 && <div className="border-t"></div>}
+                <div className="flex justify-between items-center py-2">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <User className="h-6 w-6" />
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-gray-800">{member.email}</p>
+                      <p className="text-sm text-gray-500">{member.role}</p>
+                    </div>
                   </div>
+                  <span className="text-sm px-2 py-1 bg-amber-100 text-amber-700 rounded">Pending</span>
                 </div>
-                <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Pending</span>
-              </div>
-              
-              <div className="border-t"></div>
-              
-              <div className="flex justify-between items-center py-2">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <User className="h-6 w-6" />
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">service@example.com</p>
-                    <p className="text-sm text-kepli-gray">Service Department</p>
-                  </div>
-                </div>
-                <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">Pending</span>
-              </div>
-            </div>
-          </div>
+              </React.Fragment>
+            ))}
+          </motion.div>
         </div>
-        
-        <div className="mt-8 flex items-center gap-3 bg-blue-50 p-4 rounded-lg">
-          <Users className="h-5 w-5 text-blue-500" />
-          <p className="text-sm text-blue-700">
-            You can invite more team members after completing the onboarding process.
-          </p>
-        </div>
-        
+      </motion.div>
+      
+      <motion.div 
+        variants={itemVariants}
+        className="flex items-center gap-3 bg-blue-50 p-4 rounded-lg"
+      >
+        <AlertCircle className="h-5 w-5 text-blue-500" />
+        <p className="text-sm text-blue-700">
+          You can invite more team members after completing the onboarding process from the Team section.
+        </p>
+      </motion.div>
+      
+      <motion.div variants={itemVariants} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="mt-10 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md px-6 py-2 h-12 font-medium flex items-center justify-center gap-2 w-full md:w-auto"
+          className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
         >
           Continue
           <ArrowRight size={16} />
         </Button>
-      </div>
-      
-      <div className="hidden md:flex items-center justify-center">
-        <img 
-          src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop&q=80" 
-          alt="Team collaboration" 
-          className="rounded-lg shadow-xl max-w-full h-auto object-cover"
-        />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

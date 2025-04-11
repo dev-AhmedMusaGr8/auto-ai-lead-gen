@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Upload, Database, FileSpreadsheet } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 
 const Inventory = () => {
   const { setCurrentStep } = useOnboarding();
@@ -14,81 +15,94 @@ const Inventory = () => {
     navigate('/onboarding/team');
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        staggerChildren: 0.15
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4 }
+    }
+  };
+
   return (
-    <div className="grid md:grid-cols-2 gap-12">
-      <div className="flex flex-col justify-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-kepli-darkGray mb-4">
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      <motion.div variants={itemVariants}>
+        <h1 className="text-2xl font-bold text-gray-800 mb-3">
           Set up your inventory
         </h1>
-        <p className="text-kepli-gray text-lg mb-8">
-          Choose how you'd like to add your vehicle inventory to AutoCRMAI.
+        <p className="text-gray-600">
+          Choose how you'd like to add your vehicle inventory to AutoCRMAI. You can always change this later.
         </p>
-        
-        <div className="space-y-4">
-          <Card className="cursor-pointer transition-all hover:shadow-md">
+      </motion.div>
+      
+      <motion.div variants={itemVariants} className="space-y-4">
+        {[
+          {
+            icon: <Upload className="h-6 w-6 text-[#8B5CF6]" />,
+            title: "Import from CSV",
+            description: "Upload a CSV file with your vehicle data"
+          },
+          {
+            icon: <Database className="h-6 w-6 text-[#8B5CF6]" />,
+            title: "Connect Your DMS",
+            description: "Sync with your Dealer Management System"
+          },
+          {
+            icon: <FileSpreadsheet className="h-6 w-6 text-[#8B5CF6]" />,
+            title: "Start from Scratch",
+            description: "Manually add vehicles to your inventory"
+          }
+        ].map((item, index) => (
+          <Card 
+            key={index} 
+            className="cursor-pointer transition-all hover:shadow-sm hover:border-[#8B5CF6]/70"
+          >
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <div className="p-3 rounded-full bg-[#8B5CF6]/10">
-                  <Upload className="h-6 w-6 text-[#8B5CF6]" />
+                  {item.icon}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg mb-1">Import from CSV</h3>
-                  <p className="text-kepli-gray">Upload a CSV file with your vehicle data</p>
+                  <h3 className="font-semibold text-lg mb-1 text-gray-800">{item.title}</h3>
+                  <p className="text-gray-600">{item.description}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
-          <Card className="cursor-pointer transition-all hover:shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full bg-[#8B5CF6]/10">
-                  <Database className="h-6 w-6 text-[#8B5CF6]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg mb-1">Connect Your DMS</h3>
-                  <p className="text-kepli-gray">Sync with your Dealer Management System</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="cursor-pointer transition-all hover:shadow-md">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full bg-[#8B5CF6]/10">
-                  <FileSpreadsheet className="h-6 w-6 text-[#8B5CF6]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg mb-1">Start from Scratch</h3>
-                  <p className="text-kepli-gray">Manually add vehicles to your inventory</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <p className="text-kepli-gray mt-4 text-sm">
-          You can always import or connect your inventory later.
+        ))}
+      </motion.div>
+      
+      <motion.div variants={itemVariants}>
+        <p className="text-gray-500 text-sm italic">
+          You can always import or connect your inventory later in the settings.
         </p>
-        
+      </motion.div>
+      
+      <motion.div variants={itemVariants} className="pt-4">
         <Button
           onClick={handleContinue}
-          className="mt-10 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md px-6 py-2 h-12 font-medium flex items-center justify-center gap-2 w-full md:w-auto"
+          className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
         >
           Continue
           <ArrowRight size={16} />
         </Button>
-      </div>
-      
-      <div className="hidden md:flex items-center justify-center">
-        <img 
-          src="https://images.unsplash.com/photo-1613569443889-40a3409e7294?w=800&auto=format&fit=crop&q=80" 
-          alt="Car inventory management" 
-          className="rounded-lg shadow-xl max-w-full h-auto object-cover"
-        />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

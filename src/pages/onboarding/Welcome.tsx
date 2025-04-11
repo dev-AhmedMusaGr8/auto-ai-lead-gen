@@ -2,7 +2,8 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Welcome = () => {
   const { setCurrentStep } = useOnboarding();
@@ -13,62 +14,74 @@ const Welcome = () => {
     navigate('/onboarding/dealership');
   };
 
+  const stepVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: (i: number) => ({ 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        delay: i * 0.1,
+        duration: 0.3 
+      }
+    })
+  };
+
   return (
-    <div className="grid md:grid-cols-2 gap-12">
-      <div className="flex flex-col justify-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-kepli-darkGray mb-6">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-800 mb-3">
           Welcome to AutoCRMAI
         </h1>
-        <p className="text-kepli-gray text-lg mb-8">
-          We're excited to help you transform your dealership operations. Let's set up your account in just a few steps.
+        <p className="text-gray-600">
+          Let's set up your dealership in just a few quick steps. This will help us tailor the experience to your specific needs.
         </p>
-        <div className="space-y-6">
-          <div className="flex items-start gap-3">
+      </div>
+
+      <div className="space-y-5 py-2">
+        {[
+          {
+            step: 1,
+            title: "Dealership Setup",
+            description: "Configure your dealership information and size"
+          },
+          {
+            step: 2,
+            title: "Inventory Management",
+            description: "Choose how you want to manage your vehicle inventory"
+          },
+          {
+            step: 3,
+            title: "Team Collaboration",
+            description: "Invite your team members to collaborate"
+          }
+        ].map((item, i) => (
+          <motion.div
+            key={item.step}
+            custom={i}
+            initial="hidden"
+            animate="visible"
+            variants={stepVariants}
+            className="flex items-start gap-4 p-4 rounded-lg border border-gray-100 hover:border-purple-100 hover:bg-purple-50/30 transition-all"
+          >
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6]">
-              1
+              {item.step}
             </div>
             <div>
-              <h3 className="font-medium text-kepli-darkGray">Dealership Setup</h3>
-              <p className="text-kepli-gray">Configure your dealership information</p>
+              <h3 className="font-medium text-gray-800">{item.title}</h3>
+              <p className="text-gray-600">{item.description}</p>
             </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6]">
-              2
-            </div>
-            <div>
-              <h3 className="font-medium text-kepli-darkGray">Inventory Management</h3>
-              <p className="text-kepli-gray">Import or set up your vehicle inventory</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center text-[#8B5CF6]">
-              3
-            </div>
-            <div>
-              <h3 className="font-medium text-kepli-darkGray">Team Collaboration</h3>
-              <p className="text-kepli-gray">Invite team members to collaborate</p>
-            </div>
-          </div>
-        </div>
-        
+          </motion.div>
+        ))}
+      </div>
+      
+      <div className="pt-4">
         <Button
           onClick={handleContinue}
-          className="mt-10 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md px-6 py-2 h-12 font-medium flex items-center justify-center gap-2 w-full md:w-auto"
+          className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
         >
           Get Started
           <ArrowRight size={16} />
         </Button>
-      </div>
-      
-      <div className="hidden md:flex items-center justify-center">
-        <img 
-          src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&auto=format&fit=crop&q=80" 
-          alt="Woman using laptop with dashboard" 
-          className="rounded-lg shadow-xl max-w-full h-auto object-cover"
-        />
       </div>
     </div>
   );

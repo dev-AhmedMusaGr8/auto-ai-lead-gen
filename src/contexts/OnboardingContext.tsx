@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 type OnboardingStep = 'welcome' | 'dealership' | 'inventory' | 'team' | 'complete';
 
@@ -11,14 +11,32 @@ interface OnboardingContextType {
   dealershipSize: string;
   setDealershipSize: (size: string) => void;
   completeOnboarding: () => void;
+  progress: number;
+  goBack: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
+
+const steps: OnboardingStep[] = ['welcome', 'dealership', 'inventory', 'team', 'complete'];
 
 export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('welcome');
   const [dealershipName, setDealershipName] = useState('');
   const [dealershipSize, setDealershipSize] = useState('');
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const stepIndex = steps.indexOf(currentStep);
+    const progressPercentage = (stepIndex / (steps.length - 1)) * 100;
+    setProgress(progressPercentage);
+  }, [currentStep]);
+
+  const goBack = () => {
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(steps[currentIndex - 1]);
+    }
+  };
 
   const completeOnboarding = () => {
     localStorage.setItem('onboardingCompleted', 'true');
@@ -35,6 +53,8 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         dealershipSize,
         setDealershipSize,
         completeOnboarding,
+        progress,
+        goBack,
       }}
     >
       {children}
