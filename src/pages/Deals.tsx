@@ -220,12 +220,12 @@ const Deals = () => {
           <Card key={deal.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex justify-between mb-4">
-                <div className="w-3/4">
+                <div className="w-2/3 pr-2">
                   <h3 className="font-semibold text-lg truncate">{deal.name}</h3>
                   <p className="text-sm text-muted-foreground truncate">{deal.company}</p>
                 </div>
-                <div className="w-1/4 flex justify-end">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(deal.status)}`}>
+                <div className="w-1/3 flex justify-end">
+                  <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(deal.status)}`}>
                     {deal.status}
                   </span>
                 </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, Users, Building2, TrendingUp, Search, Bell, Calendar } from "lucide-react";
@@ -151,29 +150,32 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent className="pt-6">
           {activeTab === "chart" ? (
-            <div className="h-[400px] w-full">
-              <ChartContainer config={chartConfig}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend 
-                      wrapperStyle={{ 
-                        paddingTop: 20, 
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: '2rem'
-                      }}
-                      formatter={(value, entry, index) => (
-                        <span className="text-sm font-medium">{value === 'revenue' ? 'Total Revenue' : 'Total Earning'}</span>
-                      )}
-                    />
-                    <Bar dataKey="revenue" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="earning" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
+            <div className="flex flex-col w-full">
+              <div className="h-[400px] w-full">
+                <ChartContainer config={chartConfig}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="revenue" fill="#e2e8f0" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="earning" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </div>
+              <div className="mt-4 flex justify-center">
+                <div className="flex gap-6">
+                  <div className="flex items-center">
+                    <div className="h-3 w-3 bg-gray-300 rounded mr-2"></div>
+                    <span className="text-sm">Total Revenue</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="h-3 w-3 bg-purple-500 rounded mr-2"></div>
+                    <span className="text-sm">Total Earning</span>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -299,7 +301,6 @@ const Dashboard = () => {
   );
 };
 
-// Define the proper type for the CustomTooltip props
 type CustomTooltipProps = {
   active?: boolean;
   payload?: any[];
