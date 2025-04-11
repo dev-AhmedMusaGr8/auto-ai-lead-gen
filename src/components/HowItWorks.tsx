@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const HowItWorks = () => {
   return (
@@ -45,12 +46,14 @@ const HowItWorks = () => {
         </div>
 
         <div className="mt-12 text-center">
-          <Button 
-            size="lg" 
-            className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-8 py-3 h-12 font-medium shadow-md"
-          >
-            See It In Action
-          </Button>
+          <Link to="/signin">
+            <Button 
+              size="lg" 
+              className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-md text-sm px-8 py-3 h-12 font-medium shadow-md"
+            >
+              See It In Action
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

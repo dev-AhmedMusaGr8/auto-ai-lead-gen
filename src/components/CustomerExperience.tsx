@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const CustomerExperience = () => {
   return (
@@ -109,9 +110,11 @@ const CustomerExperience = () => {
             </div>
             
             <div className="mt-8">
-              <Button className="btn-primary">
-                Start Improving Experience
-              </Button>
+              <Link to="/signin">
+                <Button className="btn-primary">
+                  Start Improving Experience
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

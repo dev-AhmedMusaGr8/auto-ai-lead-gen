@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const pricingPlans = [
   {
@@ -103,15 +104,17 @@ const Pricing = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button
-                  className={`w-full ${
-                    plan.highlighted
-                      ? "btn-primary"
-                      : "bg-white border-2 border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-6 py-2 h-10 font-medium"
-                  }`}
-                >
-                  {plan.cta}
-                </Button>
+                <Link to="/signin" className="w-full">
+                  <Button
+                    className={`w-full ${
+                      plan.highlighted
+                        ? "btn-primary"
+                        : "bg-white border-2 border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-6 py-2 h-10 font-medium"
+                    }`}
+                  >
+                    {plan.cta}
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
           ))}

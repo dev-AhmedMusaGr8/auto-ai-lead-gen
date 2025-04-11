@@ -41,9 +41,11 @@ const Hero = () => {
                 Start Free Trial
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-8 py-3 h-12 font-medium">
-              Book a Demo
-            </Button>
+            <Link to="/signin">
+              <Button size="lg" variant="outline" className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/5 rounded-md text-sm px-8 py-3 h-12 font-medium">
+                Book a Demo
+              </Button>
+            </Link>
           </div>
         </div>
         

@@ -1,5 +1,5 @@
 
-import { Facebook, Twitter, Linkedin, Instagram } from "lucide-react";
+import { Facebook, Linkedin, Instagram } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -31,7 +31,11 @@ const Footer = () => {
                   className="rounded-full bg-white/10 p-2 hover:bg-white/20"
                   aria-label="Twitter"
                 >
-                  <Twitter size={18} />
+                  {/* Modern X (Twitter) Logo */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 4l11.733 16h4.267l-11.733 -16z"/>
+                    <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/>
+                  </svg>
                 </a>
                 <a
                   href="#"
