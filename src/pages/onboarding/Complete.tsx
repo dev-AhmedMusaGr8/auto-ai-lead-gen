@@ -2,16 +2,21 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, ArrowRight, ExternalLink } from "lucide-react";
+import { CheckCircle, ArrowRight, ExternalLink, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Complete = () => {
-  const { completeOnboarding, dealershipName } = useOnboarding();
+  const { completeOnboarding, dealershipName, goBack } = useOnboarding();
   const navigate = useNavigate();
 
   const handleFinish = () => {
     completeOnboarding();
     navigate('/dashboard');
+  };
+
+  const handleBack = () => {
+    goBack();
+    navigate('/onboarding/team');
   };
 
   const containerVariants = {
@@ -107,6 +112,15 @@ const Complete = () => {
         variants={itemVariants}
         className="pt-4 flex flex-col sm:flex-row gap-4 items-center"
       >
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10 w-full sm:w-auto"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back
+        </Button>
+        
         <Button
           onClick={handleFinish}
           className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"

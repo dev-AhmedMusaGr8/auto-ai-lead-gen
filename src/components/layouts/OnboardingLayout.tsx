@@ -77,22 +77,29 @@ const OnboardingLayout = () => {
             transition={{ duration: 0.5 }}
             className="bg-white p-8 rounded-xl shadow-sm"
           >
+            {/* Back button for non-welcome pages */}
+            {currentStep !== 'welcome' && currentStep !== 'complete' && (
+              <div className="mb-6">
+                <Button
+                  variant="outline"
+                  onClick={handleBack}
+                  className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10 transition-colors flex items-center gap-2"
+                >
+                  <ArrowLeft size={16} />
+                  Back
+                </Button>
+              </div>
+            )}
+            
             <Outlet />
           </motion.div>
         </div>
       </main>
 
-      {/* Navigation footer */}
+      {/* Remove navigation footer since we've moved the back button */}
       <footer className="py-4 px-6 border-t bg-white">
-        <div className="max-w-6xl mx-auto w-full flex justify-between">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            className="flex items-center gap-2 transition-all hover:text-[#8B5CF6]"
-          >
-            <ArrowLeft size={16} />
-            Back
-          </Button>
+        <div className="max-w-6xl mx-auto w-full">
+          {/* Footer content if needed */}
         </div>
       </footer>
     </div>
