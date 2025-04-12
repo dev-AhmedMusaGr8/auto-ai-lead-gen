@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Plus, 
   Search, 
@@ -26,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -105,78 +107,86 @@ const Contacts = () => {
               <Plus className="mr-2 h-4 w-4" /> Add Contact
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add New Contact</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
-                  value={newContact.name} 
-                  onChange={(e) => setNewContact({...newContact, name: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={newContact.email} 
-                  onChange={(e) => setNewContact({...newContact, email: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input 
-                  id="phone" 
-                  value={newContact.phone} 
-                  onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Input 
-                  id="company" 
-                  value={newContact.company} 
-                  onChange={(e) => setNewContact({...newContact, company: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="title">Job Title</Label>
-                <Input 
-                  id="title" 
-                  value={newContact.title} 
-                  onChange={(e) => setNewContact({...newContact, title: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="type">Contact Type</Label>
-                <Select 
-                  value={newContact.type}
-                  onValueChange={(value) => setNewContact({...newContact, type: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Lead">Lead</SelectItem>
-                    <SelectItem value="Customer">Customer</SelectItem>
-                    <SelectItem value="Partner">Partner</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="pt-4 flex justify-end space-x-2">
+            <form onSubmit={handleSubmit} className="flex flex-col h-full">
+              <ScrollArea className="flex-grow px-6 py-4 max-h-[60vh]">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input 
+                      id="name" 
+                      value={newContact.name} 
+                      onChange={(e) => setNewContact({...newContact, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      value={newContact.email} 
+                      onChange={(e) => setNewContact({...newContact, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input 
+                      id="phone" 
+                      value={newContact.phone} 
+                      onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="company">Company</Label>
+                    <Input 
+                      id="company" 
+                      value={newContact.company} 
+                      onChange={(e) => setNewContact({...newContact, company: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Job Title</Label>
+                    <Input 
+                      id="title" 
+                      value={newContact.title} 
+                      onChange={(e) => setNewContact({...newContact, title: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Contact Type</Label>
+                    <Select 
+                      value={newContact.type}
+                      onValueChange={(value) => setNewContact({...newContact, type: value})}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Lead">Lead</SelectItem>
+                        <SelectItem value="Customer">Customer</SelectItem>
+                        <SelectItem value="Partner">Partner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </ScrollArea>
+              <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-[#8B5CF6] hover:bg-[#7C3AED]">
                   Create Contact
                 </Button>
-              </div>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>

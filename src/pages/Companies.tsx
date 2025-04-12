@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Plus, 
   Search, 
@@ -27,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -173,97 +175,107 @@ const Companies = () => {
               <Plus className="mr-2 h-4 w-4" /> Add Company
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Add New Company</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Company Name</Label>
-                <Input 
-                  id="name" 
-                  value={newCompany.name} 
-                  onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="industry">Industry</Label>
-                <Select 
-                  value={newCompany.industry}
-                  onValueChange={(value) => setNewCompany({...newCompany, industry: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Dealership">Dealership</SelectItem>
-                    <SelectItem value="Service">Service</SelectItem>
-                    <SelectItem value="Parts">Parts</SelectItem>
-                    <SelectItem value="Manufacturer">Manufacturer</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input 
-                  id="website" 
-                  value={newCompany.website} 
-                  onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="employees">Number of Employees</Label>
-                <Select 
-                  value={newCompany.employees}
-                  onValueChange={(value) => setNewCompany({...newCompany, employees: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1-10">1-10</SelectItem>
-                    <SelectItem value="10-50">10-50</SelectItem>
-                    <SelectItem value="50-100">50-100</SelectItem>
-                    <SelectItem value="100-250">100-250</SelectItem>
-                    <SelectItem value="250+">250+</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input 
-                  id="location" 
-                  value={newCompany.location} 
-                  onChange={(e) => setNewCompany({...newCompany, location: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input 
-                  id="phone" 
-                  value={newCompany.phone} 
-                  onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  value={newCompany.description} 
-                  onChange={(e) => setNewCompany({...newCompany, description: e.target.value})}
-                  rows={3}
-                />
-              </div>
-              <div className="pt-4 flex justify-end space-x-2">
+            <form onSubmit={handleSubmit} className="flex flex-col h-full">
+              <ScrollArea className="flex-grow px-6 py-4 max-h-[60vh]">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Company Name</Label>
+                    <Input 
+                      id="name" 
+                      value={newCompany.name} 
+                      onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="industry">Industry</Label>
+                    <Select 
+                      value={newCompany.industry}
+                      onValueChange={(value) => setNewCompany({...newCompany, industry: value})}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Dealership">Dealership</SelectItem>
+                        <SelectItem value="Service">Service</SelectItem>
+                        <SelectItem value="Parts">Parts</SelectItem>
+                        <SelectItem value="Manufacturer">Manufacturer</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="website">Website</Label>
+                    <Input 
+                      id="website" 
+                      value={newCompany.website} 
+                      onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="employees">Number of Employees</Label>
+                    <Select 
+                      value={newCompany.employees}
+                      onValueChange={(value) => setNewCompany({...newCompany, employees: value})}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select range" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1-10">1-10</SelectItem>
+                        <SelectItem value="10-50">10-50</SelectItem>
+                        <SelectItem value="50-100">50-100</SelectItem>
+                        <SelectItem value="100-250">100-250</SelectItem>
+                        <SelectItem value="250+">250+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Location</Label>
+                    <Input 
+                      id="location" 
+                      value={newCompany.location} 
+                      onChange={(e) => setNewCompany({...newCompany, location: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input 
+                      id="phone" 
+                      value={newCompany.phone} 
+                      onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea 
+                      id="description" 
+                      value={newCompany.description} 
+                      onChange={(e) => setNewCompany({...newCompany, description: e.target.value})}
+                      rows={3}
+                      required
+                    />
+                  </div>
+                </div>
+              </ScrollArea>
+              <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-[#8B5CF6] hover:bg-[#7C3AED]">
                   Create Company
                 </Button>
-              </div>
+              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
