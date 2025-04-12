@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Building, Store, Warehouse } from "lucide-react";
+import { ArrowRight, Building, Store, Warehouse, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
 const Dealership = () => {
-  const { setCurrentStep, dealershipName, setDealershipName, dealershipSize, setDealershipSize } = useOnboarding();
+  const { setCurrentStep, dealershipName, setDealershipName, dealershipSize, setDealershipSize, goBack } = useOnboarding();
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -23,6 +23,11 @@ const Dealership = () => {
     setError("");
     setCurrentStep('inventory');
     navigate('/onboarding/inventory');
+  };
+
+  const handleBack = () => {
+    goBack();
+    navigate('/onboarding/welcome');
   };
 
   const containerVariants = {
@@ -113,7 +118,16 @@ const Dealership = () => {
         </motion.div>
       </div>
       
-      <motion.div variants={itemVariants} className="pt-4">
+      <motion.div variants={itemVariants} className="pt-4 flex flex-col sm:flex-row gap-4 items-center">
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10 w-full sm:w-auto"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back
+        </Button>
+        
         <Button
           onClick={handleContinue}
           className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"

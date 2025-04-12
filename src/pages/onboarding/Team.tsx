@@ -5,17 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, User, Users, AlertCircle } from "lucide-react";
+import { ArrowRight, Plus, User, Users, AlertCircle, ArrowLeft } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 
 const Team = () => {
-  const { setCurrentStep } = useOnboarding();
+  const { setCurrentStep, goBack } = useOnboarding();
   const navigate = useNavigate();
 
   const handleContinue = () => {
     setCurrentStep('complete');
     navigate('/onboarding/complete');
+  };
+
+  const handleBack = () => {
+    goBack();
+    navigate('/onboarding/inventory');
   };
 
   const containerVariants = {
@@ -121,7 +126,16 @@ const Team = () => {
         </p>
       </motion.div>
       
-      <motion.div variants={itemVariants} className="pt-4">
+      <motion.div variants={itemVariants} className="pt-4 flex flex-col sm:flex-row gap-4 items-center">
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10 w-full sm:w-auto"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back
+        </Button>
+        
         <Button
           onClick={handleContinue}
           className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"

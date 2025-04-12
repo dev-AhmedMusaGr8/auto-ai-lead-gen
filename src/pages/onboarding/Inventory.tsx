@@ -2,17 +2,22 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Upload, Database, FileSpreadsheet } from "lucide-react";
+import { ArrowRight, Upload, Database, FileSpreadsheet, ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
 const Inventory = () => {
-  const { setCurrentStep } = useOnboarding();
+  const { setCurrentStep, goBack } = useOnboarding();
   const navigate = useNavigate();
 
   const handleContinue = () => {
     setCurrentStep('team');
     navigate('/onboarding/team');
+  };
+
+  const handleBack = () => {
+    goBack();
+    navigate('/onboarding/dealership');
   };
 
   const containerVariants = {
@@ -93,7 +98,16 @@ const Inventory = () => {
         </p>
       </motion.div>
       
-      <motion.div variants={itemVariants} className="pt-4">
+      <motion.div variants={itemVariants} className="pt-4 flex flex-col sm:flex-row gap-4 items-center">
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10 w-full sm:w-auto"
+        >
+          <ArrowLeft size={16} className="mr-2" />
+          Back
+        </Button>
+        
         <Button
           onClick={handleContinue}
           className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
