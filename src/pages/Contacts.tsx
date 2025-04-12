@@ -12,7 +12,10 @@ import {
   Phone,
   Mail,
   Building,
-  Star
+  Star,
+  User,
+  Briefcase,
+  Users
 } from "lucide-react";
 import {
   Select,
@@ -107,7 +110,7 @@ const Contacts = () => {
               <Plus className="mr-2 h-4 w-4" /> Add Contact
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>Add New Contact</DialogTitle>
             </DialogHeader>
@@ -116,66 +119,89 @@ const Contacts = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input 
-                      id="name" 
-                      value={newContact.name} 
-                      onChange={(e) => setNewContact({...newContact, name: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="name" 
+                        className="pl-10"
+                        value={newContact.name} 
+                        onChange={(e) => setNewContact({...newContact, name: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      value={newContact.email} 
-                      onChange={(e) => setNewContact({...newContact, email: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="email" 
+                        type="email"
+                        className="pl-10"
+                        value={newContact.email} 
+                        onChange={(e) => setNewContact({...newContact, email: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input 
-                      id="phone" 
-                      value={newContact.phone} 
-                      onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="phone" 
+                        className="pl-10"
+                        value={newContact.phone} 
+                        onChange={(e) => setNewContact({...newContact, phone: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="company">Company</Label>
-                    <Input 
-                      id="company" 
-                      value={newContact.company} 
-                      onChange={(e) => setNewContact({...newContact, company: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="company" 
+                        className="pl-10"
+                        value={newContact.company} 
+                        onChange={(e) => setNewContact({...newContact, company: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="title">Job Title</Label>
-                    <Input 
-                      id="title" 
-                      value={newContact.title} 
-                      onChange={(e) => setNewContact({...newContact, title: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="title" 
+                        className="pl-10"
+                        value={newContact.title} 
+                        onChange={(e) => setNewContact({...newContact, title: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="type">Contact Type</Label>
-                    <Select 
-                      value={newContact.type}
-                      onValueChange={(value) => setNewContact({...newContact, type: value})}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Lead">Lead</SelectItem>
-                        <SelectItem value="Customer">Customer</SelectItem>
-                        <SelectItem value="Partner">Partner</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-3 text-gray-500 h-4 w-4 z-10" />
+                      <Select 
+                        value={newContact.type}
+                        onValueChange={(value) => setNewContact({...newContact, type: value})}
+                        required
+                      >
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Lead">Lead</SelectItem>
+                          <SelectItem value="Customer">Customer</SelectItem>
+                          <SelectItem value="Partner">Partner</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </ScrollArea>

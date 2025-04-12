@@ -13,7 +13,9 @@ import {
   Globe,
   Users,
   MapPin,
-  Phone
+  Phone,
+  Building,
+  FileText
 } from "lucide-react";
 import {
   Select,
@@ -175,7 +177,7 @@ const Companies = () => {
               <Plus className="mr-2 h-4 w-4" /> Add Company
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>Add New Company</DialogTitle>
             </DialogHeader>
@@ -184,87 +186,113 @@ const Companies = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Company Name</Label>
-                    <Input 
-                      id="name" 
-                      value={newCompany.name} 
-                      onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="name" 
+                        className="pl-10"
+                        value={newCompany.name} 
+                        onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="industry">Industry</Label>
-                    <Select 
-                      value={newCompany.industry}
-                      onValueChange={(value) => setNewCompany({...newCompany, industry: value})}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select industry" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Dealership">Dealership</SelectItem>
-                        <SelectItem value="Service">Service</SelectItem>
-                        <SelectItem value="Parts">Parts</SelectItem>
-                        <SelectItem value="Manufacturer">Manufacturer</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-3 text-gray-500 h-4 w-4 z-10" />
+                      <Select 
+                        value={newCompany.industry}
+                        onValueChange={(value) => setNewCompany({...newCompany, industry: value})}
+                        required
+                      >
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Select industry" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Dealership">Dealership</SelectItem>
+                          <SelectItem value="Service">Service</SelectItem>
+                          <SelectItem value="Parts">Parts</SelectItem>
+                          <SelectItem value="Manufacturer">Manufacturer</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="website">Website</Label>
-                    <Input 
-                      id="website" 
-                      value={newCompany.website} 
-                      onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="website" 
+                        className="pl-10"
+                        value={newCompany.website} 
+                        onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="employees">Number of Employees</Label>
-                    <Select 
-                      value={newCompany.employees}
-                      onValueChange={(value) => setNewCompany({...newCompany, employees: value})}
-                      required
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1-10">1-10</SelectItem>
-                        <SelectItem value="10-50">10-50</SelectItem>
-                        <SelectItem value="50-100">50-100</SelectItem>
-                        <SelectItem value="100-250">100-250</SelectItem>
-                        <SelectItem value="250+">250+</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-3 text-gray-500 h-4 w-4 z-10" />
+                      <Select 
+                        value={newCompany.employees}
+                        onValueChange={(value) => setNewCompany({...newCompany, employees: value})}
+                        required
+                      >
+                        <SelectTrigger className="pl-10">
+                          <SelectValue placeholder="Select range" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-10">1-10</SelectItem>
+                          <SelectItem value="10-50">10-50</SelectItem>
+                          <SelectItem value="50-100">50-100</SelectItem>
+                          <SelectItem value="100-250">100-250</SelectItem>
+                          <SelectItem value="250+">250+</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="location">Location</Label>
-                    <Input 
-                      id="location" 
-                      value={newCompany.location} 
-                      onChange={(e) => setNewCompany({...newCompany, location: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="location" 
+                        className="pl-10"
+                        value={newCompany.location} 
+                        onChange={(e) => setNewCompany({...newCompany, location: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone</Label>
-                    <Input 
-                      id="phone" 
-                      value={newCompany.phone} 
-                      onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
-                      required
-                    />
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+                      <Input 
+                        id="phone" 
+                        className="pl-10"
+                        value={newCompany.phone} 
+                        onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
+                        required
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>
-                    <Textarea 
-                      id="description" 
-                      value={newCompany.description} 
-                      onChange={(e) => setNewCompany({...newCompany, description: e.target.value})}
-                      rows={3}
-                      required
-                    />
+                    <div className="relative">
+                      <FileText className="absolute left-3 top-3 text-gray-500 h-4 w-4" />
+                      <Textarea 
+                        id="description" 
+                        className="pl-10 pt-2"
+                        value={newCompany.description} 
+                        onChange={(e) => setNewCompany({...newCompany, description: e.target.value})}
+                        rows={3}
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
               </ScrollArea>
