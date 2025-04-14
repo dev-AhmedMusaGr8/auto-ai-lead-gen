@@ -25,45 +25,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Fetch user profile and roles
   const fetchUserProfile = async (userId: string) => {
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (profileError) {
-      console.error('Error fetching profile:', profileError);
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        return null;
+      }
+
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId);
+
+      if (rolesError) {
+        console.error('Error fetching roles:', rolesError);
+        return null;
+      }
+
+      return {
+        ...profileData,
+        roles: rolesData.map(r => r.role as UserRole)
+      } as UserProfile;
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
       return null;
     }
-
-    const { data: rolesData, error: rolesError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId);
-
-    if (rolesError) {
-      console.error('Error fetching roles:', rolesError);
-      return null;
-    }
-
-    return {
-      ...profileData,
-      roles: rolesData.map(r => r.role as UserRole)
-    } as UserProfile;
   };
 
   // Set up auth state listener
   useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id).then(setProfile);
-      }
-      setIsLoading(false);
-    });
-
-    // Listen for auth changes
+    // Set up auth state listener FIRST to prevent race conditions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -75,26 +71,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(false);
     });
 
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchUserProfile(session.user.id).then(setProfile);
+      }
+      setIsLoading(false);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       navigate('/dashboard');
+      return data;
     } catch (error: any) {
       toast({
         title: "Error signing in",
         description: error.message,
         variant: "destructive"
       });
+      return { error };
     }
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -108,12 +115,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Success",
         description: "Please check your email to verify your account.",
       });
+      return data;
     } catch (error: any) {
       toast({
         title: "Error signing up",
         description: error.message,
         variant: "destructive"
       });
+      return { error };
     }
   };
 

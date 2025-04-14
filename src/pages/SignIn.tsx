@@ -1,22 +1,50 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
 
 const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLogin) {
-      await signIn(email, password);
-    } else {
-      await signUp(email, password, name);
+    setLoading(true);
+    
+    try {
+      if (isLogin) {
+        const result = await signIn(email, password);
+        if (result && !result.error) {
+          navigate('/dashboard');
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+        }
+      } else {
+        const result = await signUp(email, password, name);
+        if (result && !result.error) {
+          toast({
+            title: "Account created",
+            description: "Please check your email for verification instructions.",
+          });
+          setIsLogin(true);
+        }
+      }
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -29,7 +57,7 @@ const SignIn = () => {
               <rect width="24" height="24" rx="6" fill="#6366F1" />
               <path d="M7.5 7.5H12.5L16.5 12L12.5 16.5H7.5V7.5Z" fill="white" />
             </svg>
-            <span className="text-2xl font-bold text-kepli-darkGray">AutoCRMAI</span>
+            <span className="text-2xl font-bold text-gray-800">AutoCRMAI</span>
           </a>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             {isLogin ? "Sign in to your account" : "Create your account"}
@@ -89,8 +117,9 @@ const SignIn = () => {
               <Button
                 type="submit"
                 className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
+                disabled={loading}
               >
-                {isLogin ? "Sign in" : "Sign up"}
+                {loading ? "Processing..." : isLogin ? "Sign in" : "Sign up"}
               </Button>
             </div>
           </form>
