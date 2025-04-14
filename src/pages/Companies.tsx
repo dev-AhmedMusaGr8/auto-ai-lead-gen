@@ -1,38 +1,17 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  ArrowUpDown,
-  Globe,
-  Users,
-  MapPin,
-  Phone,
-  Building,
-  FileText
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import CompanyFilter from "@/components/companies/CompanyFilter";
+import CompanyForm from "@/components/companies/CompanyForm";
+import CompanyCard from "@/components/companies/CompanyCard";
+import { Company } from "@/types/companies";
 
 // Mock data for companies
 const initialCompanies = [
@@ -119,19 +98,10 @@ const initialCompanies = [
 ];
 
 const Companies = () => {
-  const [companies, setCompanies] = useState(initialCompanies);
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
   const [search, setSearch] = useState("");
   const [industryFilter, setIndustryFilter] = useState("all");
   const [open, setOpen] = useState(false);
-  const [newCompany, setNewCompany] = useState({
-    name: "",
-    industry: "Dealership",
-    website: "",
-    employees: "10-50",
-    location: "",
-    phone: "",
-    description: ""
-  });
 
   const filteredCompanies = companies.filter(company => {
     const matchesSearch = company.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -140,30 +110,14 @@ const Companies = () => {
     return matchesSearch && matchesIndustry;
   });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = (newCompany: Omit<Company, "id">) => {
     setCompanies([
       ...companies,
       {
         id: companies.length + 1,
-        name: newCompany.name,
-        industry: newCompany.industry,
-        website: newCompany.website,
-        employees: newCompany.employees,
-        location: newCompany.location,
-        phone: newCompany.phone,
-        description: newCompany.description
+        ...newCompany
       }
     ]);
-    setNewCompany({
-      name: "",
-      industry: "Dealership",
-      website: "",
-      employees: "10-50",
-      location: "",
-      phone: "",
-      description: ""
-    });
     setOpen(false);
   };
 
@@ -181,218 +135,25 @@ const Companies = () => {
             <DialogHeader>
               <DialogTitle>Add New Company</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="flex flex-col h-full">
-              <ScrollArea className="flex-grow px-6 py-4 max-h-[60vh]">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Company Name</Label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                      <Input 
-                        id="name" 
-                        className="pl-10"
-                        value={newCompany.name} 
-                        onChange={(e) => setNewCompany({...newCompany, name: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="industry">Industry</Label>
-                    <div className="relative">
-                      <Globe className="absolute left-3 top-3 text-gray-500 h-4 w-4 z-10" />
-                      <Select 
-                        value={newCompany.industry}
-                        onValueChange={(value) => setNewCompany({...newCompany, industry: value})}
-                        required
-                      >
-                        <SelectTrigger className="pl-10">
-                          <SelectValue placeholder="Select industry" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Dealership">Dealership</SelectItem>
-                          <SelectItem value="Service">Service</SelectItem>
-                          <SelectItem value="Parts">Parts</SelectItem>
-                          <SelectItem value="Manufacturer">Manufacturer</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="website">Website</Label>
-                    <div className="relative">
-                      <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                      <Input 
-                        id="website" 
-                        className="pl-10"
-                        value={newCompany.website} 
-                        onChange={(e) => setNewCompany({...newCompany, website: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="employees">Number of Employees</Label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-3 text-gray-500 h-4 w-4 z-10" />
-                      <Select 
-                        value={newCompany.employees}
-                        onValueChange={(value) => setNewCompany({...newCompany, employees: value})}
-                        required
-                      >
-                        <SelectTrigger className="pl-10">
-                          <SelectValue placeholder="Select range" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1-10">1-10</SelectItem>
-                          <SelectItem value="10-50">10-50</SelectItem>
-                          <SelectItem value="50-100">50-100</SelectItem>
-                          <SelectItem value="100-250">100-250</SelectItem>
-                          <SelectItem value="250+">250+</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                      <Input 
-                        id="location" 
-                        className="pl-10"
-                        value={newCompany.location} 
-                        onChange={(e) => setNewCompany({...newCompany, location: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
-                      <Input 
-                        id="phone" 
-                        className="pl-10"
-                        value={newCompany.phone} 
-                        onChange={(e) => setNewCompany({...newCompany, phone: e.target.value})}
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <div className="relative">
-                      <FileText className="absolute left-3 top-3 text-gray-500 h-4 w-4" />
-                      <Textarea 
-                        id="description" 
-                        className="pl-10 pt-2"
-                        value={newCompany.description} 
-                        onChange={(e) => setNewCompany({...newCompany, description: e.target.value})}
-                        rows={3}
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              </ScrollArea>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-[#8B5CF6] hover:bg-[#7C3AED]">
-                  Create Company
-                </Button>
-              </DialogFooter>
-            </form>
+            <CompanyForm onSubmit={handleSubmit} onCancel={() => setOpen(false)} />
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 mb-6">
-        <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input
-            className="pl-10"
-            placeholder="Search companies..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Select value={industryFilter} onValueChange={setIndustryFilter}>
-            <SelectTrigger className="w-36 bg-white">
-              <div className="flex items-center">
-                <Filter size={16} className="mr-2" />
-                <SelectValue placeholder="Filter" />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="Dealership">Dealership</SelectItem>
-              <SelectItem value="Service">Service</SelectItem>
-              <SelectItem value="Parts">Parts</SelectItem>
-              <SelectItem value="Manufacturer">Manufacturer</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" className="w-36 bg-white">
-            <ArrowUpDown size={16} className="mr-2" /> Sort
-          </Button>
-        </div>
-      </div>
+      <CompanyFilter
+        search={search}
+        industryFilter={industryFilter}
+        onSearchChange={setSearch}
+        onIndustryFilterChange={setIndustryFilter}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCompanies.map((company) => (
-          <Card key={company.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="mb-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg truncate w-3/4">{company.name}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getIndustryColor(company.industry)}`}>
-                    {company.industry}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{company.description}</p>
-              </div>
-              <div className="flex flex-col space-y-2 text-sm">
-                <div className="flex items-center">
-                  <Globe className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{company.website}</span>
-                </div>
-                <div className="flex items-center">
-                  <MapPin className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{company.location}</span>
-                </div>
-                <div className="flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{company.phone}</span>
-                </div>
-                <div className="flex items-center">
-                  <Users className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{company.employees} employees</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <CompanyCard key={company.id} company={company} />
         ))}
       </div>
     </div>
   );
 };
-
-function getIndustryColor(industry) {
-  switch (industry) {
-    case 'Dealership':
-      return 'bg-blue-100 text-blue-800';
-    case 'Service':
-      return 'bg-green-100 text-green-800';
-    case 'Parts':
-      return 'bg-amber-100 text-amber-800';
-    case 'Manufacturer':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-}
 
 export default Companies;
