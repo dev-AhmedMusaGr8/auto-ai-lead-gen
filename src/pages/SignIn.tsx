@@ -1,55 +1,22 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const { signIn, signUp } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // This is a mock authentication - in a real app, you would integrate with an auth service
     if (isLogin) {
-      // Mock login for existing users
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({ email, name: "User" }));
-      
-      // Check if the user has completed onboarding
-      const hasCompletedOnboarding = localStorage.getItem("onboardingCompleted") === "true";
-      
-      toast({
-        title: "Success",
-        description: "Logged in successfully!",
-      });
-      
-      // If they've completed onboarding, go to dashboard, otherwise start onboarding
-      if (hasCompletedOnboarding) {
-        navigate("/dashboard");
-      } else {
-        navigate("/onboarding/welcome");
-      }
+      await signIn(email, password);
     } else {
-      // Mock registration for new users
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("user", JSON.stringify({ email, name }));
-      localStorage.setItem("onboardingCompleted", "false");
-      
-      toast({
-        title: "Success",
-        description: "Account created successfully!",
-      });
-      
-      // New users always go through onboarding
-      navigate("/onboarding/welcome");
+      await signUp(email, password, name);
     }
   };
 
