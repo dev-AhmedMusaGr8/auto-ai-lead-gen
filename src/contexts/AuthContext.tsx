@@ -4,7 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
-import { AuthContextType, UserProfile, UserRole } from '@/types/auth';
+import { AuthContextType, UserProfile, UserRole, AuthResponse } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -83,12 +83,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       navigate('/dashboard');
-      return data;
+      return { ...data };
     } catch (error: any) {
       toast({
         title: "Error signing in",
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string): Promise<AuthResponse> => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         title: "Success",
         description: "Please check your email to verify your account.",
       });
-      return data;
+      return { ...data };
     } catch (error: any) {
       toast({
         title: "Error signing up",
