@@ -25,18 +25,18 @@ const SignIn = () => {
       if (isLogin) {
         const result = await signIn(email, password);
         if (result && !result.error) {
-          navigate('/dashboard');
+          navigate('/onboarding/welcome');
           toast({
             title: "Welcome back!",
-            description: "You have successfully signed in.",
+            description: "You've successfully signed in to your dealership account.",
           });
         }
       } else {
-        const result = await signUp(email, password, name);
+        const result = await signUp(email, password, name, 'admin');
         if (result && !result.error) {
           toast({
-            title: "Account created",
-            description: "Please check your email for verification instructions.",
+            title: "Dealership Account Created",
+            description: "Please check your email to verify your account. Once verified, you can set up your dealership.",
           });
           setIsLogin(true);
         }
@@ -60,15 +60,15 @@ const SignIn = () => {
             <span className="text-2xl font-bold text-gray-800">AutoCRMAI</span>
           </a>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {isLogin ? "Sign in to your account" : "Create your account"}
+            {isLogin ? "Sign in to your dealership" : "Create your dealership account"}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+            {isLogin ? "Don't have a dealership account?" : "Already have a dealership account?"}{" "}
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-[#8B5CF6] hover:text-[#7C3AED] font-medium"
             >
-              {isLogin ? "Sign up" : "Sign in"}
+              {isLogin ? "Register now" : "Sign in"}
             </button>
           </p>
         </div>
@@ -77,7 +77,7 @@ const SignIn = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Dealership Name</Label>
                 <Input
                   id="name"
                   name="name"
@@ -86,11 +86,12 @@ const SignIn = () => {
                   className="mt-1"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="Enter your dealership name"
                 />
               </div>
             )}
             <div>
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="email">Work Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -99,6 +100,7 @@ const SignIn = () => {
                 className="mt-1"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="your.name@dealership.com"
               />
             </div>
             <div>
@@ -119,7 +121,7 @@ const SignIn = () => {
                 className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
                 disabled={loading}
               >
-                {loading ? "Processing..." : isLogin ? "Sign in" : "Sign up"}
+                {loading ? "Processing..." : isLogin ? "Sign in" : "Create Account"}
               </Button>
             </div>
           </form>

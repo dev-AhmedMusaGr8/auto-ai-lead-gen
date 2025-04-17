@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Fetch user profile and roles
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data: profileData, error: profileError } = await supabase
@@ -57,9 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Set up auth state listener
   useEffect(() => {
-    // Set up auth state listener FIRST to prevent race conditions
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -71,7 +68,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoading(false);
     });
 
-    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -87,7 +83,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      navigate('/dashboard');
+
+      // Fetch user profile after successful sign in
+      if (data.user) {
+        const profile = await fetchUserProfile(data.user.id);
+        if (profile) {
+          setProfile(profile);
+          // Redirect based on onboarding status
+          navigate(profile.dealership_id ? '/dashboard' : '/onboarding/welcome');
+        }
+      }
+
       return { ...data };
     } catch (error: any) {
       toast({
@@ -99,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string): Promise<AuthResponse> => {
+  const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'admin'): Promise<AuthResponse> => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,

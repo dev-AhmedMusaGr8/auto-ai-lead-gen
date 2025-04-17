@@ -1,7 +1,7 @@
 
 import { User } from '@supabase/supabase-js';
 
-export type UserRole = 'sales_rep' | 'service_advisor' | 'finance_admin' | 'manager' | 'marketing';
+export type UserRole = 'admin' | 'sales_rep' | 'service_advisor' | 'finance_admin' | 'marketing' | 'manager';
 
 export interface UserProfile {
   id: string;
@@ -12,7 +12,6 @@ export interface UserProfile {
   roles: UserRole[];
 }
 
-// Define the return type for authentication functions
 export interface AuthResponse {
   user?: User | null;
   session?: any | null;
@@ -25,6 +24,7 @@ export interface AuthContextType {
   isLoading: boolean;
   hasRole: (role: UserRole) => boolean;
   signIn: (email: string, password: string) => Promise<AuthResponse>;
-  signUp: (email: string, password: string, fullName: string) => Promise<AuthResponse>;
+  signUp: (email: string, password: string, fullName: string, role?: UserRole) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
 }
+
