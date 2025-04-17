@@ -10,6 +10,8 @@ export interface UserProfile {
   avatar_url: string | null;
   dealership_id: string | null;
   roles: UserRole[];
+  onboarding_completed: boolean;
+  role_onboarding_completed: boolean;
 }
 
 export interface AuthResponse {

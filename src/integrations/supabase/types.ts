@@ -9,6 +9,65 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      dealerships: {
+        Row: {
+          business_focus: string | null
+          created_at: string | null
+          id: string
+          location: string | null
+          name: string
+          size: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_focus?: string | null
+          created_at?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          size?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_focus?: string | null
+          created_at?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          size?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      departments: {
+        Row: {
+          created_at: string | null
+          dealership_id: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          dealership_id: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          dealership_id?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "departments_dealership_id_fkey"
+            columns: ["dealership_id"]
+            isOneToOne: false
+            referencedRelation: "dealerships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -17,6 +76,8 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          onboarding_completed: boolean | null
+          role_onboarding_completed: boolean | null
           updated_at: string
         }
         Insert: {
@@ -26,6 +87,8 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          onboarding_completed?: boolean | null
+          role_onboarding_completed?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -35,9 +98,19 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean | null
+          role_onboarding_completed?: boolean | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_dealership_id_fkey"
+            columns: ["dealership_id"]
+            isOneToOne: false
+            referencedRelation: "dealerships"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -84,6 +157,7 @@ export type Database = {
         | "finance_admin"
         | "manager"
         | "marketing"
+        | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -205,6 +279,7 @@ export const Constants = {
         "finance_admin",
         "manager",
         "marketing",
+        "admin",
       ],
     },
   },
