@@ -1,19 +1,19 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/SignIn";
 import Dashboard from "./pages/Dashboard";
-import Deals from "./pages/Deals";
-import Contacts from "./pages/Contacts";
-import Companies from "./pages/Companies";
-import DashboardLayout from "./components/layouts/DashboardLayout";
 import OnboardingLayout from "./components/layouts/OnboardingLayout";
-import { OnboardingProvider } from "./contexts/OnboardingContext";
+import RoleOnboardingLayout from "./components/layouts/RoleOnboardingLayout";
+import RoleDashboardLayout from "./components/layouts/RoleDashboardLayout";
+import SalesRepOnboarding from "./pages/role-onboarding/SalesRepOnboarding";
 
 // Onboarding pages
 import Welcome from "./pages/onboarding/Welcome";
@@ -23,7 +23,6 @@ import Team from "./pages/onboarding/Team";
 import Complete from "./pages/onboarding/Complete";
 import { useAuth } from "./contexts/AuthContext";
 
-// Set up the query client
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -51,7 +50,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/signin" element={<SignIn />} />
             
-            {/* Protected routes */}
+            {/* Admin Onboarding */}
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <OnboardingLayout />
@@ -64,15 +63,22 @@ const App = () => (
               <Route path="complete" element={<Complete />} />
             </Route>
             
+            {/* Role-specific Onboarding */}
+            <Route path="/role-onboarding" element={
+              <ProtectedRoute>
+                <RoleOnboardingLayout />
+              </ProtectedRoute>
+            }>
+              <Route path="sales" element={<SalesRepOnboarding />} />
+            </Route>
+            
+            {/* Role-based Dashboard */}
             <Route path="/" element={
               <ProtectedRoute>
-                <DashboardLayout />
+                <RoleDashboardLayout />
               </ProtectedRoute>
             }>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/deals" element={<Deals />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/companies" element={<Companies />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />

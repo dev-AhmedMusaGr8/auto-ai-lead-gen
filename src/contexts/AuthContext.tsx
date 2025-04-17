@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
+        .select('*, user_roles(role)')
         .eq('id', userId)
         .single();
 
@@ -36,20 +35,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return null;
       }
 
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId);
-
-      if (rolesError) {
-        console.error('Error fetching roles:', rolesError);
-        return null;
-      }
-
-      return {
+      const userProfile: UserProfile = {
         ...profileData,
-        roles: rolesData.map(r => r.role as UserRole)
-      } as UserProfile;
+        roles: profileData.user_roles.map((r: any) => r.role as UserRole)
+      };
+
+      return userProfile;
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
       return null;
@@ -62,6 +53,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (session?.user) {
         const profile = await fetchUserProfile(session.user.id);
         setProfile(profile);
+        
+        if (profile) {
+          if (!profile.onboarding_completed) {
+            navigate('/onboarding/welcome');
+          } else if (!profile.role_onboarding_completed) {
+            const roleRoute = getRoleOnboardingRoute(profile.roles[0]);
+            navigate(roleRoute);
+          } else {
+            navigate('/dashboard');
+          }
+        }
       } else {
         setProfile(null);
       }
@@ -79,17 +81,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  const getRoleOnboardingRoute = (role: UserRole): string => {
+    const routes: { [key in UserRole]: string } = {
+      admin: '/onboarding/welcome',
+      sales_rep: '/role-onboarding/sales',
+      service_advisor: '/role-onboarding/service',
+      finance_admin: '/role-onboarding/finance',
+      marketing: '/role-onboarding/marketing',
+      manager: '/role-onboarding/manager'
+    };
+    return routes[role] || '/dashboard';
+  };
+
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
-      // Fetch user profile after successful sign in
       if (data.user) {
         const profile = await fetchUserProfile(data.user.id);
         if (profile) {
           setProfile(profile);
-          // Redirect based on onboarding status
           navigate(profile.dealership_id ? '/dashboard' : '/onboarding/welcome');
         }
       }
@@ -163,4 +175,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     </AuthContext.Provider>
   );
 };
-
