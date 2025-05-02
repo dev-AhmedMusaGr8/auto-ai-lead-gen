@@ -77,7 +77,21 @@ const RoleDashboardLayout = () => {
   
   return (
     <div className="flex h-screen">
-      <Sidebar navItems={navItems} />
+      {/* Pass navItems as a children prop instead of as a direct prop */}
+      <Sidebar>
+        <div className="space-y-1">
+          {navItems.map((item, index) => (
+            <a 
+              key={index}
+              href={item.href}
+              className="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-secondary/20"
+            >
+              <item.icon className="mr-2 h-5 w-5" />
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </Sidebar>
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
