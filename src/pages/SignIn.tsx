@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,11 +24,8 @@ const SignIn = () => {
       if (isLogin) {
         const result = await signIn(email, password);
         if (result && !result.error) {
-          navigate('/onboarding/welcome');
-          toast({
-            title: "Welcome back!",
-            description: "You've successfully signed in to your dealership account.",
-          });
+          // Success notification will be shown by AuthContext after redirect
+          // Intentionally not navigating here as AuthContext will handle the redirect
         }
       } else {
         const result = await signUp(email, password, name, 'admin');
@@ -132,4 +128,3 @@ const SignIn = () => {
 };
 
 export default SignIn;
-

@@ -53,7 +53,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
         const profile = await fetchUserProfile(session.user.id);
         setProfile(profile);
@@ -67,21 +69,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           } else {
             navigate('/dashboard');
           }
+        } else {
+          // If we have a session but no profile, go to onboarding
+          navigate('/onboarding/welcome');
         }
       } else {
         setProfile(null);
       }
+      
       setIsLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check for existing session on initial load
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Initial session check:", session?.user?.id);
+      
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        fetchUserProfile(session.user.id).then(setProfile);
+        const profile = await fetchUserProfile(session.user.id);
+        setProfile(profile);
       }
+      
       setIsLoading(false);
-    });
+    };
 
+    initializeAuth();
+    
     return () => subscription.unsubscribe();
   }, [navigate]);
 
@@ -101,15 +116,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-
-      if (data.user) {
-        const profile = await fetchUserProfile(data.user.id);
-        if (profile) {
-          setProfile(profile);
-          navigate(profile.dealership_id ? '/dashboard' : '/onboarding/welcome');
-        }
-      }
-
+      
+      // Let onAuthStateChange handle navigation
+      toast({
+        title: "Welcome back!",
+        description: "You've successfully signed in to your dealership account.",
+      });
+      
       return { ...data };
     } catch (error: any) {
       toast({

@@ -27,10 +27,11 @@ import Complete from "./pages/onboarding/Complete";
 
 const queryClient = new QueryClient();
 
-// Move the import to the module level to avoid the circular dependency
-import { useAuth } from "./contexts/AuthContext";
-
+// Define ProtectedRoute as a separate component using hooks
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  // Since we can't import useAuth at the top level due to circular dependency,
+  // we need to import it within the component
+  const { useAuth } = require("./contexts/AuthContext");
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
@@ -81,12 +82,12 @@ const App = () => (
                 </Route>
                 
                 {/* Role-based Dashboard */}
-                <Route path="/" element={
+                <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <RoleDashboardLayout />
                   </ProtectedRoute>
                 }>
-                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route index element={<Dashboard />} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />
