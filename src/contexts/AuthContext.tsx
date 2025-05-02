@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { AuthContextType, UserProfile, UserRole, AuthResponse } from '@/types/auth';
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -83,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const getRoleOnboardingRoute = (role: UserRole): string => {
     const routes: { [key in UserRole]: string } = {

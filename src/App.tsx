@@ -23,11 +23,12 @@ import Dealership from "./pages/onboarding/Dealership";
 import Inventory from "./pages/onboarding/Inventory";
 import Team from "./pages/onboarding/Team";
 import Complete from "./pages/onboarding/Complete";
-import { useAuth } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  // We'll import useAuth inside the component to avoid circular dependencies
+  const { useAuth } = require("./contexts/AuthContext");
   const { user, isLoading } = useAuth();
   
   if (isLoading) {
