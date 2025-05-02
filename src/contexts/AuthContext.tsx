@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,9 +36,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return null;
       }
 
+      // Fix the type issue with user_roles
       const userProfile: UserProfile = {
         ...profileData,
-        roles: profileData.user_roles.map((r: any) => r.role as UserRole)
+        roles: profileData.user_roles && Array.isArray(profileData.user_roles) 
+          ? profileData.user_roles.map((r: any) => r.role as UserRole)
+          : [] // Default to empty array if user_roles is not an array
       };
 
       return userProfile;

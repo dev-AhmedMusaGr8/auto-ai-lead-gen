@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { AIProvider } from "./contexts/AIContext";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -14,6 +15,7 @@ import OnboardingLayout from "./components/layouts/OnboardingLayout";
 import RoleOnboardingLayout from "./components/layouts/RoleOnboardingLayout";
 import RoleDashboardLayout from "./components/layouts/RoleDashboardLayout";
 import SalesRepOnboarding from "./pages/role-onboarding/SalesRepOnboarding";
+import ServiceAdvisorOnboarding from "./pages/role-onboarding/ServiceAdvisorOnboarding";
 
 // Onboarding pages
 import Welcome from "./pages/onboarding/Welcome";
@@ -43,47 +45,50 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/signin" element={<SignIn />} />
-            
-            {/* Admin Onboarding */}
-            <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <OnboardingLayout />
-              </ProtectedRoute>
-            }>
-              <Route path="welcome" element={<Welcome />} />
-              <Route path="dealership" element={<Dealership />} />
-              <Route path="inventory" element={<Inventory />} />
-              <Route path="team" element={<Team />} />
-              <Route path="complete" element={<Complete />} />
-            </Route>
-            
-            {/* Role-specific Onboarding */}
-            <Route path="/role-onboarding" element={
-              <ProtectedRoute>
-                <RoleOnboardingLayout />
-              </ProtectedRoute>
-            }>
-              <Route path="sales" element={<SalesRepOnboarding />} />
-            </Route>
-            
-            {/* Role-based Dashboard */}
-            <Route path="/" element={
-              <ProtectedRoute>
-                <RoleDashboardLayout />
-              </ProtectedRoute>
-            }>
-              <Route path="/dashboard" element={<Dashboard />} />
-            </Route>
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </TooltipProvider>
+        <AIProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/signin" element={<SignIn />} />
+              
+              {/* Admin Onboarding */}
+              <Route path="/onboarding" element={
+                <ProtectedRoute>
+                  <OnboardingLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="welcome" element={<Welcome />} />
+                <Route path="dealership" element={<Dealership />} />
+                <Route path="inventory" element={<Inventory />} />
+                <Route path="team" element={<Team />} />
+                <Route path="complete" element={<Complete />} />
+              </Route>
+              
+              {/* Role-specific Onboarding */}
+              <Route path="/role-onboarding" element={
+                <ProtectedRoute>
+                  <RoleOnboardingLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="sales" element={<SalesRepOnboarding />} />
+                <Route path="service" element={<ServiceAdvisorOnboarding />} />
+              </Route>
+              
+              {/* Role-based Dashboard */}
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <RoleDashboardLayout />
+                </ProtectedRoute>
+              }>
+                <Route path="/dashboard" element={<Dashboard />} />
+              </Route>
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </TooltipProvider>
+        </AIProvider>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>

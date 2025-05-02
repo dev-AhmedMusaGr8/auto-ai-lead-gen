@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import { 
   Home, Car, Users, Calendar, Settings, LogOut, 
-  ClipboardList, Tool, CreditCard, BarChart 
+  ClipboardList, Wrench, CreditCard, BarChart 
 } from "lucide-react";
 
 const RoleDashboardLayout = () => {
