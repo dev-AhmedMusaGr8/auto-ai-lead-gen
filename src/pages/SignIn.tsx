@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,15 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // If user is already logged in, redirect to appropriate page
+  if (user) {
+    navigate('/onboarding/welcome');
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,10 +29,13 @@ const SignIn = () => {
     
     try {
       if (isLogin) {
+        console.log("Attempting to sign in with:", email);
         const result = await signIn(email, password);
         if (result && !result.error) {
-          // Success notification will be shown by AuthContext after redirect
-          // Intentionally not navigating here as AuthContext will handle the redirect
+          console.log("Sign in successful, auth context should handle redirection");
+          // AuthContext will handle navigation based on user profile
+        } else {
+          console.error("Sign in failed with error:", result?.error);
         }
       } else {
         const result = await signUp(email, password, name, 'admin');
@@ -39,6 +49,11 @@ const SignIn = () => {
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
+      toast({
+        title: "Authentication Error",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }

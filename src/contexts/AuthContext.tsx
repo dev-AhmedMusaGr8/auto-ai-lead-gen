@@ -25,6 +25,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*, user_roles(role)')
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           : [] // Default to empty array if user_roles is not an array
       };
 
+      console.log("Fetched user profile:", userProfile);
       return userProfile;
     } catch (error) {
       console.error("Failed to fetch user profile:", error);
@@ -51,48 +53,66 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
-      setUser(session?.user ?? null);
+  const handleAuthChange = async (event: string, session: any) => {
+    console.log("Auth state changed:", event, session?.user?.id);
+    setUser(session?.user ?? null);
+    
+    if (session?.user) {
+      const profile = await fetchUserProfile(session.user.id);
+      setProfile(profile);
       
-      if (session?.user) {
-        const profile = await fetchUserProfile(session.user.id);
-        setProfile(profile);
-        
-        if (profile) {
-          if (!profile.onboarding_completed) {
-            navigate('/onboarding/welcome');
-          } else if (!profile.role_onboarding_completed) {
-            const roleRoute = getRoleOnboardingRoute(profile.roles[0]);
-            navigate(roleRoute);
-          } else {
-            navigate('/dashboard');
-          }
-        } else {
-          // If we have a session but no profile, go to onboarding
+      if (profile) {
+        if (!profile.onboarding_completed) {
+          console.log("Navigating to onboarding welcome");
           navigate('/onboarding/welcome');
+        } else if (!profile.role_onboarding_completed) {
+          const roleRoute = getRoleOnboardingRoute(profile.roles[0]);
+          console.log("Navigating to role onboarding:", roleRoute);
+          navigate(roleRoute);
+        } else {
+          console.log("Navigating to dashboard");
+          navigate('/dashboard');
         }
       } else {
-        setProfile(null);
+        // If we have a session but no profile, go to onboarding
+        console.log("No profile found, navigating to onboarding");
+        navigate('/onboarding/welcome');
       }
-      
-      setIsLoading(false);
-    });
+    } else {
+      setProfile(null);
+    }
+    
+    setIsLoading(false);
+  };
 
+  useEffect(() => {
+    // First set up the auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // To avoid deadlocks in the auth system, we won't call other Supabase functions
+      // or navigate directly inside this callback
+      setUser(session?.user ?? null);
+      
+      // Use setTimeout to defer complex operations outside the immediate callback
+      setTimeout(() => {
+        if (session?.user) {
+          handleAuthChange(event, session);
+        } else {
+          setProfile(null);
+          setIsLoading(false);
+        }
+      }, 0);
+    });
+    
     // Check for existing session on initial load
     const initializeAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       console.log("Initial session check:", session?.user?.id);
       
-      setUser(session?.user ?? null);
-      
       if (session?.user) {
-        const profile = await fetchUserProfile(session.user.id);
-        setProfile(profile);
+        handleAuthChange('INITIAL_SESSION', session);
+      } else {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     initializeAuth();
@@ -114,10 +134,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
+      console.log("Attempting sign in for:", email);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
       if (error) throw error;
       
-      // Let onAuthStateChange handle navigation
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in to your dealership account.",
@@ -125,6 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       return { ...data };
     } catch (error: any) {
+      console.error("Sign in error:", error.message);
       toast({
         title: "Error signing in",
         description: error.message,
