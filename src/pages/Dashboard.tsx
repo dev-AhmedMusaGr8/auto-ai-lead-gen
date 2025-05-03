@@ -3,10 +3,18 @@ import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AIAssistant from "@/components/ai/AIAssistant";
 import AISummaryCard from "@/components/ai/AISummaryCard";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const { profile } = useAuth();
+  const { profile, isLoading } = useAuth();
+  const navigate = useNavigate();
   const role = profile?.roles?.[0] || "admin";
+
+  useEffect(() => {
+    if (!isLoading && !profile) {
+      navigate('/signin');
+    }
+  }, [profile, isLoading, navigate]);
 
   const roleConfigurations = {
     sales_rep: {
@@ -43,9 +51,19 @@ const Dashboard = () => {
 
   const currentConfig = roleConfigurations[role as keyof typeof roleConfigurations] || roleConfigurations.admin;
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+  }
+
+  if (!profile) {
+    return null; // Will redirect via the useEffect
+  }
+
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">{currentConfig.title}</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        {currentConfig.title} {profile?.dealership_name ? `for ${profile.dealership_name}` : ''}
+      </h1>
       
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-4">AI-Powered Insights</h2>

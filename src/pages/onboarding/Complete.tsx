@@ -5,10 +5,13 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Complete = () => {
   const { setCurrentStep, completeOnboarding } = useOnboarding();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   // Ensure we're on the correct onboarding step
   useEffect(() => {
@@ -16,10 +19,26 @@ const Complete = () => {
   }, [setCurrentStep]);
 
   const handleFinish = async () => {
-    // Save onboarding data to database and mark as complete
-    await completeOnboarding();
-    // Navigate to dashboard
-    navigate('/dashboard');
+    try {
+      // Save onboarding data to database and mark as complete
+      await completeOnboarding();
+      
+      // Show success toast
+      toast({
+        title: "Onboarding completed!",
+        description: "Your dealership setup is complete. Welcome to AutoCRMAI!"
+      });
+      
+      // Navigate to dashboard
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      console.error("Failed to complete onboarding:", error);
+      toast({
+        title: "Error completing onboarding",
+        description: "Please try again or contact support",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
