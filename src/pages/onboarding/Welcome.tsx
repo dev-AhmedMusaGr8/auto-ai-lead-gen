@@ -5,10 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Welcome = () => {
   const { setCurrentStep } = useOnboarding();
   const navigate = useNavigate();
+  const { profile } = useAuth();
 
   // Ensure we're on the correct onboarding step
   useEffect(() => {
@@ -36,7 +38,7 @@ const Welcome = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-800 mb-3">
-          Welcome to AutoCRMAI
+          Welcome {profile?.full_name ? `${profile.full_name}` : ''} to AutoCRMAI
         </h1>
         <p className="text-gray-600">
           Let's set up your dealership in just a few quick steps. This will help us tailor the experience to your specific needs.

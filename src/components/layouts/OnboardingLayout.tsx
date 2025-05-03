@@ -2,12 +2,13 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const OnboardingLayout = () => {
   const { currentStep, progress, goBack } = useOnboarding();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleBack = () => {
     goBack();
@@ -30,6 +31,12 @@ const OnboardingLayout = () => {
     }
   };
 
+  const handleSkip = () => {
+    // Mark onboarding as completed in the user profile
+    // and navigate to dashboard
+    navigate('/dashboard');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Logo and progress header */}
@@ -47,7 +54,7 @@ const OnboardingLayout = () => {
             {/* Skip link */}
             {currentStep !== 'complete' && (
               <button 
-                onClick={() => navigate('/dashboard')}
+                onClick={handleSkip}
                 className="text-sm text-gray-500 hover:text-[#8B5CF6] transition-colors"
               >
                 Skip
@@ -72,6 +79,7 @@ const OnboardingLayout = () => {
       <main className="flex-grow flex items-center justify-center p-6">
         <div className="max-w-4xl w-full">
           <motion.div
+            key={location.pathname}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}

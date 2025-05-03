@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,32 +52,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const redirectUserBasedOnProfile = (profile: UserProfile | null) => {
+    if (!profile) {
+      console.log("No profile found, navigating to onboarding");
+      navigate('/onboarding/welcome');
+      return;
+    }
+
+    if (!profile.onboarding_completed) {
+      console.log("Navigating to onboarding welcome");
+      navigate('/onboarding/welcome');
+    } else if (!profile.role_onboarding_completed) {
+      const roleRoute = getRoleOnboardingRoute(profile.roles[0]);
+      console.log("Navigating to role onboarding:", roleRoute);
+      navigate(roleRoute);
+    } else {
+      console.log("Navigating to dashboard");
+      navigate('/dashboard');
+    }
+  };
+
   const handleAuthChange = async (event: string, session: any) => {
     console.log("Auth state changed:", event, session?.user?.id);
-    setUser(session?.user ?? null);
     
     if (session?.user) {
-      const profile = await fetchUserProfile(session.user.id);
-      setProfile(profile);
+      setUser(session.user);
+      const userProfile = await fetchUserProfile(session.user.id);
+      setProfile(userProfile);
       
-      if (profile) {
-        if (!profile.onboarding_completed) {
-          console.log("Navigating to onboarding welcome");
-          navigate('/onboarding/welcome');
-        } else if (!profile.role_onboarding_completed) {
-          const roleRoute = getRoleOnboardingRoute(profile.roles[0]);
-          console.log("Navigating to role onboarding:", roleRoute);
-          navigate(roleRoute);
-        } else {
-          console.log("Navigating to dashboard");
-          navigate('/dashboard');
-        }
-      } else {
-        // If we have a session but no profile, go to onboarding
-        console.log("No profile found, navigating to onboarding");
-        navigate('/onboarding/welcome');
+      // Only redirect on certain auth events to avoid navigation loops
+      if (['SIGNED_IN', 'TOKEN_REFRESHED', 'INITIAL_SESSION'].includes(event)) {
+        redirectUserBasedOnProfile(userProfile);
       }
     } else {
+      setUser(null);
       setProfile(null);
     }
     
@@ -88,18 +95,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      // To avoid deadlocks in the auth system, we won't call other Supabase functions
-      // or navigate directly inside this callback
-      setUser(session?.user ?? null);
-      
-      // Use setTimeout to defer complex operations outside the immediate callback
+      // To avoid deadlocks, we use setTimeout to handle complex operations
       setTimeout(() => {
-        if (session?.user) {
-          handleAuthChange(event, session);
-        } else {
-          setProfile(null);
-          setIsLoading(false);
-        }
+        handleAuthChange(event, session);
       }, 0);
     });
     
@@ -118,7 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     initializeAuth();
     
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const getRoleOnboardingRoute = (role: UserRole): string => {
     const routes: { [key in UserRole]: string } = {

@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
 
 const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -15,13 +14,9 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  // If user is already logged in, redirect to appropriate page
-  if (user) {
-    navigate('/onboarding/welcome');
-    return null;
-  }
+  // User is handled by the AuthContext redirection now,
+  // we don't need to redirect here
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,11 +26,13 @@ const SignIn = () => {
       if (isLogin) {
         console.log("Attempting to sign in with:", email);
         const result = await signIn(email, password);
-        if (result && !result.error) {
-          console.log("Sign in successful, auth context should handle redirection");
-          // AuthContext will handle navigation based on user profile
-        } else {
-          console.error("Sign in failed with error:", result?.error);
+        if (result && result.error) {
+          console.error("Sign in failed with error:", result.error);
+          toast({
+            title: "Sign in failed",
+            description: result.error.message || "Invalid email or password",
+            variant: "destructive"
+          });
         }
       } else {
         const result = await signUp(email, password, name, 'admin');

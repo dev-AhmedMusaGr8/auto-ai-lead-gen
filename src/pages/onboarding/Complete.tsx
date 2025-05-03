@@ -1,143 +1,89 @@
 
+import { useEffect } from "react";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { CheckCircle, ArrowRight, ExternalLink, ArrowLeft } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Complete = () => {
-  const { completeOnboarding, dealershipName, goBack } = useOnboarding();
+  const { setCurrentStep, completeOnboarding } = useOnboarding();
   const navigate = useNavigate();
 
-  const handleFinish = () => {
-    completeOnboarding();
+  // Ensure we're on the correct onboarding step
+  useEffect(() => {
+    setCurrentStep('complete');
+  }, [setCurrentStep]);
+
+  const handleFinish = async () => {
+    // Save onboarding data to database and mark as complete
+    await completeOnboarding();
+    // Navigate to dashboard
     navigate('/dashboard');
   };
 
-  const handleBack = () => {
-    goBack();
-    navigate('/onboarding/team');
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { 
-      opacity: 1,
-      transition: { 
-        staggerChildren: 0.15,
-        delayChildren: 0.3
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.4 }
-    }
-  };
-
-  const successVariants = {
-    hidden: { scale: 0.8, opacity: 0 },
-    visible: { 
-      scale: 1, 
-      opacity: 1,
-      transition: { 
-        type: "spring",
-        duration: 0.8
-      }
-    }
-  };
-
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6 text-center sm:text-left"
-    >
-      <motion.div 
-        variants={successVariants}
-        className="mb-6 flex justify-center sm:justify-start"
-      >
-        <div className="p-4 bg-green-100 rounded-full">
-          <CheckCircle className="h-12 w-12 text-green-600" />
-        </div>
-      </motion.div>
-      
-      <motion.div variants={itemVariants}>
-        <h1 className="text-2xl font-bold text-gray-800 mb-3">
-          {dealershipName ? `${dealershipName} is ready to go!` : "You're all set!"}
-        </h1>
-        <p className="text-gray-600">
-          Your AutoCRMAI account is now ready. Let's start managing your dealership operations with AI-powered insights.
-        </p>
-      </motion.div>
-      
-      <motion.div variants={itemVariants} className="space-y-6">
-        <div className="bg-white rounded-lg border p-5">
-          <h3 className="font-semibold text-lg mb-4 text-gray-800">Here's what you can do next:</h3>
-          <ul className="space-y-4">
-            {[
-              "Complete your dealership profile with location and business hours",
-              "Import your customer database to activate AI-powered insights",
-              "Customize your sales pipeline stages to match your workflow",
-              "Set up automated follow-ups and customer communication templates"
-            ].map((item, index) => (
-              <motion.li 
-                key={index}
-                className="flex items-start gap-3"
-                variants={{
-                  hidden: { opacity: 0, x: -20 },
-                  visible: { 
-                    opacity: 1, 
-                    x: 0,
-                    transition: { duration: 0.4, delay: 0.1 * index }
-                  }
-                }}
-              >
-                <div className="mt-0.5 flex-shrink-0 bg-[#8B5CF6]/10 p-1 rounded-full">
-                  <CheckCircle className="h-4 w-4 text-[#8B5CF6]" />
-                </div>
-                <p className="text-gray-700">{item}</p>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
-      </motion.div>
-      
+    <div className="space-y-8 text-center">
       <motion.div
-        variants={itemVariants}
-        className="pt-4 flex flex-col sm:flex-row gap-4 items-center"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 260, 
+          damping: 20,
+          delay: 0.2
+        }}
+        className="mx-auto bg-green-100 rounded-full p-4 w-20 h-20 flex items-center justify-center"
       >
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10 w-full sm:w-auto"
-        >
-          <ArrowLeft size={16} className="mr-2" />
-          Back
-        </Button>
-        
-        <Button
-          onClick={handleFinish}
-          className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
-        >
-          Go to Dashboard
-          <ArrowRight size={16} />
-        </Button>
-        
-        <Button
-          variant="outline"
-          className="border-[#8B5CF6] text-[#8B5CF6] hover:bg-[#8B5CF6]/10 w-full sm:w-auto"
-        >
-          Watch Tutorial
-          <ExternalLink size={16} />
-        </Button>
+        <Check className="w-10 h-10 text-green-600" />
       </motion.div>
-    </motion.div>
+
+      <div>
+        <h1 className="text-3xl font-bold text-gray-800 mb-3">
+          You're all set!
+        </h1>
+        <p className="text-gray-600 max-w-md mx-auto">
+          Your dealership has been successfully configured. You can now start using AutoCRMAI to manage your business.
+        </p>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-gray-50 p-5 rounded-lg max-w-md mx-auto"
+      >
+        <h3 className="font-medium text-lg mb-3">What's next?</h3>
+        <ul className="text-left space-y-3">
+          <li className="flex items-start gap-3">
+            <div className="bg-[#8B5CF6]/10 rounded-full p-1 mt-0.5">
+              <Check className="w-4 h-4 text-[#8B5CF6]" />
+            </div>
+            <span>Customize your dashboard based on your role</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="bg-[#8B5CF6]/10 rounded-full p-1 mt-0.5">
+              <Check className="w-4 h-4 text-[#8B5CF6]" />
+            </div>
+            <span>Import your customer data and inventory</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <div className="bg-[#8B5CF6]/10 rounded-full p-1 mt-0.5">
+              <Check className="w-4 h-4 text-[#8B5CF6]" />
+            </div>
+            <span>Set up integrations with your existing tools</span>
+          </li>
+        </ul>
+      </motion.div>
+
+      <Button
+        onClick={handleFinish}
+        className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium"
+      >
+        Go to Dashboard
+        <ArrowRight size={16} className="ml-2" />
+      </Button>
+    </div>
   );
 };
 

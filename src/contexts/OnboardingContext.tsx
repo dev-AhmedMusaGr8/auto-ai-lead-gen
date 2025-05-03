@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from './AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 type OnboardingStep = 'welcome' | 'dealership' | 'inventory' | 'team' | 'complete';
 
@@ -10,7 +13,7 @@ interface OnboardingContextType {
   setDealershipName: (name: string) => void;
   dealershipSize: string;
   setDealershipSize: (size: string) => void;
-  completeOnboarding: () => void;
+  completeOnboarding: () => Promise<void>;
   progress: number;
   goBack: () => void;
 }
@@ -24,6 +27,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [dealershipName, setDealershipName] = useState('');
   const [dealershipSize, setDealershipSize] = useState('');
   const [progress, setProgress] = useState(0);
+  const { user } = useAuth();
 
   useEffect(() => {
     const stepIndex = steps.indexOf(currentStep);
@@ -38,9 +42,40 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   };
 
-  const completeOnboarding = () => {
-    localStorage.setItem('onboardingCompleted', 'true');
-    // Additional setup could be done here, like saving to backend
+  const completeOnboarding = async () => {
+    if (!user) {
+      console.error("No user found to complete onboarding");
+      return;
+    }
+
+    try {
+      // Update the user profile to mark onboarding as complete
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          onboarding_completed: true,
+          dealership_name: dealershipName,
+          dealership_size: dealershipSize
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Onboarding completed!",
+        description: "Your dealership has been set up successfully."
+      });
+
+    } catch (error: any) {
+      console.error("Failed to complete onboarding:", error);
+      toast({
+        title: "Error completing onboarding",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+    }
   };
 
   // Provide the actual value to avoid undefined context

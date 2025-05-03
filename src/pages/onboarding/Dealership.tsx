@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Building, Store, Warehouse, ArrowLeft } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
@@ -13,6 +13,11 @@ const Dealership = () => {
   const { setCurrentStep, dealershipName, setDealershipName, dealershipSize, setDealershipSize, goBack } = useOnboarding();
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  // Ensure we're on the correct onboarding step
+  useEffect(() => {
+    setCurrentStep('dealership');
+  }, [setCurrentStep]);
 
   const handleContinue = () => {
     if (!dealershipName.trim()) {
@@ -133,7 +138,7 @@ const Dealership = () => {
           className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
         >
           Continue
-          <ArrowRight size={16} />
+          <ArrowRight size={16} className="ml-2" />
         </Button>
       </motion.div>
     </motion.div>
