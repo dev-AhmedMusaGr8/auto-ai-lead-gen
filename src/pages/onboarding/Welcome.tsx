@@ -2,12 +2,18 @@
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 
 const Welcome = () => {
   const { setCurrentStep } = useOnboarding();
   const navigate = useNavigate();
+
+  // Ensure we're on the correct onboarding step
+  useEffect(() => {
+    setCurrentStep('welcome');
+  }, [setCurrentStep]);
 
   const handleContinue = () => {
     setCurrentStep('dealership');
@@ -80,7 +86,7 @@ const Welcome = () => {
           className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-medium w-full sm:w-auto"
         >
           Get Started
-          <ArrowRight size={16} />
+          <ArrowRight size={16} className="ml-2" />
         </Button>
       </div>
     </div>

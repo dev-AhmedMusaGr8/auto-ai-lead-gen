@@ -84,8 +84,17 @@ const OnboardingLayout = () => {
 
       {/* Footer */}
       <footer className="py-4 px-6 border-t bg-white">
-        <div className="max-w-6xl mx-auto w-full">
-          {/* Footer content if needed */}
+        <div className="max-w-6xl mx-auto w-full flex justify-between">
+          {currentStep !== 'welcome' && (
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft size={16} />
+              Back
+            </Button>
+          )}
         </div>
       </footer>
     </div>

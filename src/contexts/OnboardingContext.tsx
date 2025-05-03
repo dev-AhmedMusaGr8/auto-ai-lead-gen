@@ -43,20 +43,21 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     // Additional setup could be done here, like saving to backend
   };
 
+  // Provide the actual value to avoid undefined context
+  const contextValue: OnboardingContextType = {
+    currentStep,
+    setCurrentStep,
+    dealershipName,
+    setDealershipName,
+    dealershipSize,
+    setDealershipSize,
+    completeOnboarding,
+    progress,
+    goBack,
+  };
+
   return (
-    <OnboardingContext.Provider
-      value={{
-        currentStep,
-        setCurrentStep,
-        dealershipName,
-        setDealershipName,
-        dealershipSize,
-        setDealershipSize,
-        completeOnboarding,
-        progress,
-        goBack,
-      }}
-    >
+    <OnboardingContext.Provider value={contextValue}>
       {children}
     </OnboardingContext.Provider>
   );
