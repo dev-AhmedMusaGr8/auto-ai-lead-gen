@@ -1,20 +1,43 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AIAssistant from "@/components/ai/AIAssistant";
 import AISummaryCard from "@/components/ai/AISummaryCard";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { profile, isLoading } = useAuth();
   const navigate = useNavigate();
   const role = profile?.roles?.[0] || "admin";
+  const [dealershipName, setDealershipName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !profile) {
       navigate('/signin');
     }
   }, [profile, isLoading, navigate]);
+
+  // Fetch dealership name when profile loads
+  useEffect(() => {
+    const fetchDealershipName = async () => {
+      if (profile?.dealership_id) {
+        const { data, error } = await supabase
+          .from('dealerships')
+          .select('name')
+          .eq('id', profile.dealership_id)
+          .single();
+          
+        if (data && !error) {
+          setDealershipName(data.name);
+        }
+      }
+    };
+
+    if (profile) {
+      fetchDealershipName();
+    }
+  }, [profile]);
 
   const roleConfigurations = {
     sales_rep: {
@@ -62,7 +85,7 @@ const Dashboard = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">
-        {currentConfig.title} {profile?.dealership_name ? `for ${profile.dealership_name}` : ''}
+        {currentConfig.title} {dealershipName ? `for ${dealershipName}` : ''}
       </h1>
       
       <div className="mb-6">
