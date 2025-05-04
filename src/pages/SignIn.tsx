@@ -1,10 +1,11 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -12,11 +13,35 @@ const SignIn = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, user, profile } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // User is handled by the AuthContext redirection now,
-  // we don't need to redirect here
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (user && profile) {
+      // If onboarding is not completed, go to onboarding
+      if (!profile.onboarding_completed) {
+        navigate('/onboarding/welcome', { replace: true });
+      }
+      // If onboarding is completed but role onboarding is not (for non-admins)
+      else if (!profile.role_onboarding_completed && profile.roles[0] !== 'admin') {
+        // Determine role-specific onboarding route
+        const roleRoutes: Record<string, string> = {
+          'sales_rep': '/role-onboarding/sales',
+          'service_advisor': '/role-onboarding/service',
+          'finance_admin': '/role-onboarding/finance',
+          'marketing': '/role-onboarding/marketing',
+          'manager': '/role-onboarding/manager'
+        };
+        navigate(roleRoutes[profile.roles[0]] || '/dashboard', { replace: true });
+      }
+      // Otherwise go to dashboard
+      else {
+        navigate('/dashboard', { replace: true });
+      }
+    }
+  }, [user, profile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +83,12 @@ const SignIn = () => {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md">
+      <motion.div 
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="mb-8 text-center">
           <a href="/" className="flex justify-center">
             <svg className="h-10 w-10 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -81,7 +111,12 @@ const SignIn = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg px-8 py-10">
+        <motion.div 
+          className="bg-white rounded-lg shadow-lg px-8 py-10"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.3 }}
+        >
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
@@ -133,8 +168,8 @@ const SignIn = () => {
               </Button>
             </div>
           </form>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

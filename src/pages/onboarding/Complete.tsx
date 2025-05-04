@@ -18,23 +18,25 @@ const Complete = () => {
     setCurrentStep('complete');
   }, [setCurrentStep]);
 
+  // If the profile shows onboarding already completed, navigate to dashboard
+  useEffect(() => {
+    if (profile?.onboarding_completed) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [profile, navigate]);
+
   const handleFinish = async () => {
     try {
-      // Only save onboarding data to database if not already completed
-      if (!profile?.onboarding_completed) {
-        console.log("Completing onboarding process...");
-        await completeOnboarding();
-        
-        // Show success toast
-        toast({
-          title: "Onboarding completed!",
-          description: "Your dealership setup is complete. Welcome to AutoCRMAI!"
-        });
-      } else {
-        console.log("Onboarding already completed, skipping database update");
-      }
+      console.log("Completing onboarding process...");
+      await completeOnboarding();
       
-      // Navigate to dashboard regardless
+      // Show success toast
+      toast({
+        title: "Onboarding completed!",
+        description: "Your dealership setup is complete. Welcome to AutoCRMAI!"
+      });
+      
+      // Navigate to dashboard
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error("Failed to complete onboarding:", error);

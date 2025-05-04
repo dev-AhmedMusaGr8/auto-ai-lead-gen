@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from './AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 type OnboardingStep = 'welcome' | 'dealership' | 'inventory' | 'team' | 'complete';
 
@@ -28,6 +29,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [dealershipSize, setDealershipSize] = useState('');
   const [progress, setProgress] = useState(0);
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
 
   // Initialize onboarding state based on user's dealership name if available
   useEffect(() => {
@@ -49,12 +51,14 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [profile]);
 
+  // Update progress whenever the currentStep changes
   useEffect(() => {
     const stepIndex = steps.indexOf(currentStep);
     const progressPercentage = (stepIndex / (steps.length - 1)) * 100;
     setProgress(progressPercentage);
   }, [currentStep]);
 
+  // Navigate back to the previous step
   const goBack = () => {
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex > 0) {
@@ -126,6 +130,9 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         title: "Onboarding completed!",
         description: "Your dealership has been set up successfully."
       });
+
+      // Navigate to dashboard after successful onboarding completion
+      navigate('/dashboard', { replace: true });
 
     } catch (error: any) {
       console.error("Failed to complete onboarding:", error);

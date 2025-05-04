@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { AuthContextType, UserProfile, UserRole, AuthResponse } from '@/types/auth';
 
@@ -22,6 +22,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const fetchUserProfile = async (userId: string) => {
@@ -54,59 +55,92 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const redirectUserBasedOnProfile = (profile: UserProfile | null) => {
+  const determineRedirectPath = (profile: UserProfile | null): string => {
+    // If no profile found, go to sign in
     if (!profile) {
-      console.log("No profile found, navigating to onboarding");
-      navigate('/onboarding/welcome');
-      return;
+      return '/signin';
     }
 
+    // If onboarding is not completed, go to onboarding
     if (!profile.onboarding_completed) {
-      console.log("Navigating to onboarding welcome");
-      navigate('/onboarding/welcome');
-    } else if (!profile.role_onboarding_completed && profile.roles[0] !== 'admin') {
-      // Only non-admin users need role onboarding
-      const roleRoute = getRoleOnboardingRoute(profile.roles[0]);
-      console.log("Navigating to role onboarding:", roleRoute);
-      navigate(roleRoute);
-    } else {
-      console.log("Navigating to dashboard");
-      navigate('/dashboard');
+      return '/onboarding/welcome';
+    }
+    
+    // If role onboarding is not completed for non-admin users
+    if (!profile.role_onboarding_completed && profile.roles[0] !== 'admin') {
+      // Determine which role-specific onboarding to show
+      const roleRoutes: Record<UserRole, string> = {
+        'admin': '/dashboard',
+        'sales_rep': '/role-onboarding/sales',
+        'service_advisor': '/role-onboarding/service',
+        'finance_admin': '/role-onboarding/finance',
+        'marketing': '/role-onboarding/marketing',
+        'manager': '/role-onboarding/manager'
+      };
+      return roleRoutes[profile.roles[0]] || '/dashboard';
+    }
+    
+    // Default to dashboard
+    return '/dashboard';
+  };
+
+  const redirectUserBasedOnProfile = (profile: UserProfile | null) => {
+    const redirectPath = determineRedirectPath(profile);
+    
+    // Only redirect if we're not already on the correct path
+    // This prevents unnecessary navigation loops
+    if (!location.pathname.startsWith(redirectPath) && 
+        location.pathname !== '/' && 
+        location.pathname !== '/signin') {
+      console.log(`Redirecting to ${redirectPath} from ${location.pathname}`);
+      navigate(redirectPath, { replace: true });
     }
   };
 
-  const handleAuthChange = async (event: string, session: any) => {
+  const handleAuthChange = async (event: string, session: Session | null) => {
     console.log("Auth state changed:", event, session?.user?.id);
     
-    if (session?.user) {
-      setUser(session.user);
-      setSession(session);
-      
-      // Fetch user profile on auth changes that matter
-      if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) {
-        const userProfile = await fetchUserProfile(session.user.id);
-        setProfile(userProfile);
+    try {
+      if (session?.user) {
+        setUser(session.user);
+        setSession(session);
         
-        // Only redirect on SIGNED_IN or INITIAL_SESSION
-        if (['SIGNED_IN', 'INITIAL_SESSION'].includes(event)) {
-          redirectUserBasedOnProfile(userProfile);
+        // Fetch user profile on auth changes that matter
+        if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) {
+          const userProfile = await fetchUserProfile(session.user.id);
+          setProfile(userProfile);
+          
+          // Only redirect on SIGNED_IN or INITIAL_SESSION to prevent redirect loops
+          if (['SIGNED_IN', 'INITIAL_SESSION'].includes(event)) {
+            // Don't redirect away from the index page or login page
+            if (location.pathname !== '/' && location.pathname !== '/signin') {
+              redirectUserBasedOnProfile(userProfile);
+            }
+          }
+        }
+      } else {
+        setUser(null);
+        setSession(null);
+        setProfile(null);
+        
+        // If signed out, redirect to home page
+        if (event === 'SIGNED_OUT') {
+          navigate('/', { replace: true });
         }
       }
-    } else {
-      setUser(null);
-      setSession(null);
-      setProfile(null);
+    } catch (error) {
+      console.error("Error in auth state change handler:", error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   useEffect(() => {
     // First set up the auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, _session) => {
       // To avoid deadlocks, we use setTimeout to handle complex operations
       setTimeout(() => {
-        handleAuthChange(event, session);
+        handleAuthChange(_event, _session);
       }, 0);
     });
     
@@ -132,18 +166,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     return () => subscription.unsubscribe();
   }, []);
-
-  const getRoleOnboardingRoute = (role: UserRole): string => {
-    const routes: { [key in UserRole]: string } = {
-      admin: '/dashboard', // Admins go straight to dashboard
-      sales_rep: '/role-onboarding/sales',
-      service_advisor: '/role-onboarding/service',
-      finance_admin: '/role-onboarding/finance',
-      marketing: '/role-onboarding/marketing',
-      manager: '/role-onboarding/manager'
-    };
-    return routes[role] || '/dashboard';
-  };
 
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
@@ -203,7 +225,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      navigate('/signin');
+      navigate('/');
     } catch (error: any) {
       toast({
         title: "Error signing out",

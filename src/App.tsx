@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AIProvider } from "./contexts/AIContext";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
@@ -27,7 +27,7 @@ import Complete from "./pages/onboarding/Complete";
 
 const queryClient = new QueryClient();
 
-// Define ProtectedRoute as a separate component using hooks
+// Protected route that checks authentication status
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
   
@@ -36,7 +36,61 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    return <Navigate to="/signin" />;
+    return <Navigate to="/signin" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Route that checks if user needs onboarding
+const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
+  const { profile, isLoading } = useAuth();
+  const location = useLocation();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  if (!profile) {
+    return <Navigate to="/signin" replace />;
+  }
+  
+  // If onboarding is completed, redirect to dashboard
+  if (profile.onboarding_completed) {
+    // Don't redirect if already on dashboard
+    if (!location.pathname.includes('/dashboard')) {
+      return <Navigate to="/dashboard" replace />;
+    }
+  }
+  
+  // If onboarding is not completed, redirect to onboarding
+  if (!profile.onboarding_completed && !location.pathname.includes('/onboarding')) {
+    return <Navigate to="/onboarding/welcome" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Route that checks if user needs role-specific onboarding
+const RoleOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
+  const { profile, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  if (!profile) {
+    return <Navigate to="/signin" replace />;
+  }
+  
+  // Admin users don't need role onboarding
+  if (profile.roles?.[0] === 'admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  // If role onboarding is completed, redirect to dashboard
+  if (profile.role_onboarding_completed) {
+    return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;
@@ -46,13 +100,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const AppContent = () => {
   return (
     <Routes>
+      {/* Public routes */}
       <Route path="/" element={<Index />} />
       <Route path="/signin" element={<SignIn />} />
       
-      {/* Admin Onboarding */}
+      {/* Admin Onboarding - Protected and checks if onboarding is needed */}
       <Route path="/onboarding" element={
         <ProtectedRoute>
-          <OnboardingLayout />
+          <OnboardingRoute>
+            <OnboardingLayout />
+          </OnboardingRoute>
         </ProtectedRoute>
       }>
         <Route path="welcome" element={<Welcome />} />
@@ -62,17 +119,19 @@ const AppContent = () => {
         <Route path="complete" element={<Complete />} />
       </Route>
       
-      {/* Role-specific Onboarding */}
+      {/* Role-specific Onboarding - Protected and checks if role onboarding is needed */}
       <Route path="/role-onboarding" element={
         <ProtectedRoute>
-          <RoleOnboardingLayout />
+          <RoleOnboardingRoute>
+            <RoleOnboardingLayout />
+          </RoleOnboardingRoute>
         </ProtectedRoute>
       }>
         <Route path="sales" element={<SalesRepOnboarding />} />
         <Route path="service" element={<ServiceAdvisorOnboarding />} />
       </Route>
       
-      {/* Role-based Dashboard */}
+      {/* Role-based Dashboard - Protected */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <RoleDashboardLayout />
@@ -81,6 +140,7 @@ const AppContent = () => {
         <Route index element={<Dashboard />} />
       </Route>
       
+      {/* Fallback */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
