@@ -9,13 +9,17 @@ export const determineRedirectPath = (profile: UserProfile | null, isNewSession:
 
   // For new sessions (like after sign-in), we need to check onboarding status
   if (isNewSession) {
+    console.log("Determining redirect for new session, profile:", profile);
+    
     // If onboarding is not completed for admin, go to onboarding
-    if (!profile.onboarding_completed && profile.roles?.[0] === 'admin') {
+    if (profile.roles?.[0] === 'admin' && !profile.onboarding_completed) {
+      console.log("Admin needs onboarding, redirecting to welcome");
       return '/onboarding/welcome';
     }
     
     // If role onboarding is not completed for non-admin users
-    if (!profile.role_onboarding_completed && profile.roles?.[0] !== 'admin') {
+    if (profile.roles?.[0] !== 'admin' && !profile.role_onboarding_completed) {
+      console.log("Non-admin needs role onboarding");
       // Determine which role-specific onboarding to show
       const roleRoutes: Record<UserRole, string> = {
         'admin': '/dashboard',
@@ -30,6 +34,7 @@ export const determineRedirectPath = (profile: UserProfile | null, isNewSession:
   }
   
   // For all cases where onboarding is complete or it's not a new session
+  console.log("Returning dashboard as redirect path");
   return '/dashboard';
 };
 
@@ -42,6 +47,7 @@ export const redirectUserBasedOnProfile = (
   if (!profile) return;
   
   const redirectPath = determineRedirectPath(profile, isNewSession);
+  console.log("Redirect path determined:", redirectPath, "current path:", currentPath);
   
   // Paths that should never be redirected from
   const safePublicPaths = ['/', '/signin'];

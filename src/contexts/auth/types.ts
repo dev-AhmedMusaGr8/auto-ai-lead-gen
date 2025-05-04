@@ -17,4 +17,5 @@ export interface AuthContextType {
   signIn: (email: string, password: string) => Promise<AuthResponse>;
   signUp: (email: string, password: string, fullName: string, role?: UserRole) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
+  inviteUser: (email: string, role: UserRole, dealershipId: string) => Promise<{ success: boolean; error?: string }>;
 }

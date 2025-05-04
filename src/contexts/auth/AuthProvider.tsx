@@ -38,14 +38,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setSession(session);
         
         // Fetch user profile on auth changes that matter
-        if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) {
+        if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION', 'SIGNED_UP'].includes(event)) {
           const userProfile = await fetchUserProfile(session.user.id);
           setProfile(userProfile);
           
-          // Only redirect on SIGNED_IN event (new login)
-          if (event === 'SIGNED_IN') {
-            // Don't redirect away from the index page (home page)
-            if (location.pathname !== '/') {
+          // Redirect on sign in or sign up events
+          if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
+            console.log("Redirecting after sign in/up event", event, userProfile);
+            // Don't redirect away from the index page (home page) unless it's a sign up
+            if (location.pathname !== '/' || event === 'SIGNED_UP') {
               redirectUserBasedOnProfile(userProfile, true, navigate, location.pathname);
             }
           }
@@ -138,10 +139,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) throw error;
       
-      toast({
-        title: "Success",
-        description: "Please check your email to verify your account.",
-      });
+      // Only show success message if there's no session (email confirmation required)
+      if (!data.session) {
+        toast({
+          title: "Success",
+          description: "Please check your email to verify your account.",
+        });
+      } else {
+        toast({
+          title: "Account created successfully",
+          description: "Welcome to your dealership dashboard.",
+        });
+      }
       
       return { ...data };
     } catch (error: any) {
@@ -171,6 +180,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return profile?.roles?.includes(role) ?? false;
   };
 
+  const inviteUser = async (email: string, role: UserRole, dealershipId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      console.log(`Sending invitation to ${email} with role ${role}`);
+      
+      // Call the edge function to send the invitation email
+      const { data, error } = await supabase.functions.invoke('send-invitation', {
+        body: {
+          email,
+          role,
+          dealershipId
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Invitation sent",
+        description: `An invitation has been sent to ${email}`,
+      });
+      
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error sending invitation:", error);
+      toast({
+        title: "Error sending invitation",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive"
+      });
+      return { success: false, error: error.message };
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -181,6 +222,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn,
       signUp,
       signOut,
+      inviteUser,
     }}>
       {children}
     </AuthContext.Provider>

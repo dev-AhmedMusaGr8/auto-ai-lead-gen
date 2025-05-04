@@ -18,28 +18,45 @@ const SignIn = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Pre-fill the form if email is provided in query params (for invitations)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const inviteEmail = params.get('email');
+    if (inviteEmail) {
+      setEmail(inviteEmail);
+      // If they have an invite, they should be registering, not logging in
+      setIsLogin(false);
+    }
+  }, []);
+
   // Redirect if user is already authenticated
   useEffect(() => {
     if (user && profile) {
-      // If onboarding is not completed, go to onboarding
-      if (profile.roles?.[0] === 'admin' && !profile.onboarding_completed) {
-        navigate('/onboarding/welcome', { replace: true });
-      }
-      // If onboarding is completed but role onboarding is not (for non-admins)
-      else if (!profile.role_onboarding_completed && profile.roles?.[0] !== 'admin') {
-        // Determine role-specific onboarding route
-        const roleRoutes: Record<string, string> = {
-          'sales_rep': '/role-onboarding/sales',
-          'service_advisor': '/role-onboarding/service',
-          'finance_admin': '/role-onboarding/finance',
-          'marketing': '/role-onboarding/marketing',
-          'manager': '/role-onboarding/manager'
-        };
-        navigate(roleRoutes[profile.roles[0]] || '/dashboard', { replace: true });
-      }
-      // Otherwise go to dashboard
-      else {
-        navigate('/dashboard', { replace: true });
+      // Determine where to redirect based on profile
+      if (profile.roles?.[0] === 'admin') {
+        // If admin onboarding is not completed, go to onboarding
+        if (!profile.onboarding_completed) {
+          console.log("Admin redirecting to onboarding");
+          navigate('/onboarding/welcome', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        // For non-admin users, check role-specific onboarding
+        if (!profile.role_onboarding_completed) {
+          console.log("Non-admin redirecting to role onboarding");
+          // Determine role-specific onboarding route
+          const roleRoutes: Record<string, string> = {
+            'sales_rep': '/role-onboarding/sales',
+            'service_advisor': '/role-onboarding/service',
+            'finance_admin': '/role-onboarding/finance',
+            'marketing': '/role-onboarding/marketing',
+            'manager': '/role-onboarding/manager'
+          };
+          navigate(roleRoutes[profile.roles[0]] || '/dashboard', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       }
     }
   }, [user, profile, navigate]);
@@ -63,11 +80,13 @@ const SignIn = () => {
       } else {
         const result = await signUp(email, password, name, 'admin');
         if (result && !result.error) {
-          toast({
-            title: "Dealership Account Created",
-            description: "Please check your email to verify your account. Once verified, you can set up your dealership.",
-          });
-          setIsLogin(true);
+          if (!result.session) {
+            toast({
+              title: "Dealership Account Created",
+              description: "Please check your email to verify your account. Once verified, you can set up your dealership.",
+            });
+            setIsLogin(true);
+          }
         }
       }
     } catch (error: any) {
