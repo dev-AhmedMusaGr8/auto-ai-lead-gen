@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/ui/sidebar';
 import { 
@@ -14,9 +14,19 @@ import {
   Car,
   MessageSquare,
   Bell,
-  LogOut
+  LogOut,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+
+// Format role for display
+const formatRole = (role: string): string => {
+  return role
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
 // Define role-based navigation items
 const getRoleNavItems = (role: string) => {
@@ -96,6 +106,8 @@ const RoleDashboardLayout = () => {
     await signOut();
     navigate('/signin');
   };
+
+  const roleColor = role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800';
   
   return (
     <div className="flex h-screen bg-gray-100">
@@ -116,26 +128,39 @@ const RoleDashboardLayout = () => {
           <div className="flex-1 overflow-y-auto py-4">
             <div className="space-y-1 px-3">
               {navItems.map((item, index) => (
-                <a 
+                <Link 
                   key={index}
-                  href={item.href}
+                  to={item.href}
                   className="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors"
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.label}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
           
           <div className="p-4 border-t">
             <div className="flex items-center mb-3">
-              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mr-2">
+              <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mr-2 text-gray-700 font-medium">
                 {profile.full_name ? profile.full_name.charAt(0) : 'U'}
               </div>
-              <div>
-                <p className="text-sm font-medium">{profile.full_name || 'User'}</p>
-                <p className="text-xs text-gray-500">{role.replace('_', ' ')}</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium truncate">{profile.full_name || 'User'}</p>
+                <div className="flex items-center">
+                  {role === 'admin' ? (
+                    <div className="flex items-center">
+                      <Badge variant="secondary" className={roleColor}>
+                        <Shield className="w-3 h-3 mr-1" />
+                        {formatRole(role)}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <Badge variant="secondary" className={roleColor}>
+                      {formatRole(role)}
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
             <Button 

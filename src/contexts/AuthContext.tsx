@@ -1,5 +1,6 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -17,6 +18,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -41,7 +43,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         ...profileData,
         roles: profileData.user_roles && Array.isArray(profileData.user_roles) 
           ? profileData.user_roles.map((r: any) => r.role as UserRole)
-          : [] // Default to empty array if user_roles is not an array
+          : ['admin'] // Default to admin if no role is found
       };
 
       console.log("Fetched user profile:", userProfile);
@@ -62,7 +64,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!profile.onboarding_completed) {
       console.log("Navigating to onboarding welcome");
       navigate('/onboarding/welcome');
-    } else if (!profile.role_onboarding_completed) {
+    } else if (!profile.role_onboarding_completed && profile.roles[0] !== 'admin') {
+      // Only non-admin users need role onboarding
       const roleRoute = getRoleOnboardingRoute(profile.roles[0]);
       console.log("Navigating to role onboarding:", roleRoute);
       navigate(roleRoute);
@@ -77,15 +80,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     if (session?.user) {
       setUser(session.user);
-      const userProfile = await fetchUserProfile(session.user.id);
-      setProfile(userProfile);
+      setSession(session);
       
-      // Only redirect on certain auth events to avoid navigation loops
-      if (['SIGNED_IN', 'TOKEN_REFRESHED', 'INITIAL_SESSION'].includes(event)) {
-        redirectUserBasedOnProfile(userProfile);
+      // Fetch user profile on auth changes that matter
+      if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) {
+        const userProfile = await fetchUserProfile(session.user.id);
+        setProfile(userProfile);
+        
+        // Only redirect on SIGNED_IN or INITIAL_SESSION
+        if (['SIGNED_IN', 'INITIAL_SESSION'].includes(event)) {
+          redirectUserBasedOnProfile(userProfile);
+        }
       }
     } else {
       setUser(null);
+      setSession(null);
       setProfile(null);
     }
     
@@ -103,12 +112,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     // Check for existing session on initial load
     const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("Initial session check:", session?.user?.id);
-      
-      if (session?.user) {
-        handleAuthChange('INITIAL_SESSION', session);
-      } else {
+      try {
+        setIsLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session check:", session?.user?.id);
+        
+        if (session?.user) {
+          await handleAuthChange('INITIAL_SESSION', session);
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error("Error initializing auth:", error);
         setIsLoading(false);
       }
     };
@@ -120,7 +135,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getRoleOnboardingRoute = (role: UserRole): string => {
     const routes: { [key in UserRole]: string } = {
-      admin: '/onboarding/welcome',
+      admin: '/dashboard', // Admins go straight to dashboard
       sales_rep: '/role-onboarding/sales',
       service_advisor: '/role-onboarding/service',
       finance_admin: '/role-onboarding/finance',
@@ -162,14 +177,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         options: {
           data: {
             full_name: fullName,
+            role: role
           },
         },
       });
+      
       if (error) throw error;
+      
       toast({
         title: "Success",
         description: "Please check your email to verify your account.",
       });
+      
       return { ...data };
     } catch (error: any) {
       toast({
@@ -201,6 +220,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthContext.Provider value={{
       user,
+      session,
       profile,
       isLoading,
       hasRole,

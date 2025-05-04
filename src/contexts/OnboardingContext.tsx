@@ -27,7 +27,27 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [dealershipName, setDealershipName] = useState('');
   const [dealershipSize, setDealershipSize] = useState('');
   const [progress, setProgress] = useState(0);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+
+  // Initialize onboarding state based on user's dealership name if available
+  useEffect(() => {
+    if (profile?.dealership_id) {
+      const fetchDealershipInfo = async () => {
+        const { data, error } = await supabase
+          .from('dealerships')
+          .select('name, size')
+          .eq('id', profile.dealership_id)
+          .single();
+          
+        if (data && !error) {
+          setDealershipName(data.name || '');
+          setDealershipSize(data.size || '');
+        }
+      };
+      
+      fetchDealershipInfo();
+    }
+  }, [profile]);
 
   useEffect(() => {
     const stepIndex = steps.indexOf(currentStep);
@@ -49,19 +69,58 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
 
     try {
+      console.log("Starting onboarding completion process");
+      
+      // First create or update the dealership
+      let dealershipId;
+      
+      if (profile?.dealership_id) {
+        // Update existing dealership
+        const { error: dealershipError } = await supabase
+          .from('dealerships')
+          .update({ 
+            name: dealershipName,
+            size: dealershipSize,
+            updated_at: new Date()
+          })
+          .eq('id', profile.dealership_id);
+          
+        if (dealershipError) throw dealershipError;
+        dealershipId = profile.dealership_id;
+      } else {
+        // Create new dealership
+        const { data: dealershipData, error: dealershipError } = await supabase
+          .from('dealerships')
+          .insert({ 
+            name: dealershipName,
+            size: dealershipSize,
+            created_at: new Date(),
+            updated_at: new Date()
+          })
+          .select('id')
+          .single();
+          
+        if (dealershipError) throw dealershipError;
+        dealershipId = dealershipData.id;
+      }
+      
+      console.log("Dealership created/updated with ID:", dealershipId);
+      
       // Update the user profile to mark onboarding as complete
       const { error } = await supabase
         .from('profiles')
         .update({ 
           onboarding_completed: true,
-          dealership_name: dealershipName,
-          dealership_size: dealershipSize
+          dealership_id: dealershipId,
+          updated_at: new Date()
         })
         .eq('id', user.id);
 
       if (error) {
         throw error;
       }
+      
+      console.log("Profile updated, onboarding marked as complete");
 
       toast({
         title: "Onboarding completed!",

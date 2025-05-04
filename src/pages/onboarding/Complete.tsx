@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const Complete = () => {
   const { setCurrentStep, completeOnboarding } = useOnboarding();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   // Ensure we're on the correct onboarding step
   useEffect(() => {
@@ -20,16 +20,21 @@ const Complete = () => {
 
   const handleFinish = async () => {
     try {
-      // Save onboarding data to database and mark as complete
-      await completeOnboarding();
+      // Only save onboarding data to database if not already completed
+      if (!profile?.onboarding_completed) {
+        console.log("Completing onboarding process...");
+        await completeOnboarding();
+        
+        // Show success toast
+        toast({
+          title: "Onboarding completed!",
+          description: "Your dealership setup is complete. Welcome to AutoCRMAI!"
+        });
+      } else {
+        console.log("Onboarding already completed, skipping database update");
+      }
       
-      // Show success toast
-      toast({
-        title: "Onboarding completed!",
-        description: "Your dealership setup is complete. Welcome to AutoCRMAI!"
-      });
-      
-      // Navigate to dashboard
+      // Navigate to dashboard regardless
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error("Failed to complete onboarding:", error);
