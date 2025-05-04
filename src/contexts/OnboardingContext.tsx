@@ -58,6 +58,13 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setProgress(progressPercentage);
   }, [currentStep]);
 
+  // Check if onboarding is completed and redirect if necessary
+  useEffect(() => {
+    if (profile?.onboarding_completed && currentStep !== 'complete') {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [profile, navigate, currentStep]);
+
   // Navigate back to the previous step
   const goBack = () => {
     const currentIndex = steps.indexOf(currentStep);
@@ -85,7 +92,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           .update({ 
             name: dealershipName,
             size: dealershipSize,
-            updated_at: new Date().toISOString() // Convert Date to string
+            updated_at: new Date().toISOString()
           })
           .eq('id', profile.dealership_id);
           
@@ -95,11 +102,11 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         // Create new dealership
         const { data: dealershipData, error: dealershipError } = await supabase
           .from('dealerships')
-          .insert({ // Fixed: Use a single object instead of an array for a single insert
+          .insert({ 
             name: dealershipName,
             size: dealershipSize,
-            created_at: new Date().toISOString(), // Convert Date to string
-            updated_at: new Date().toISOString()  // Convert Date to string
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select('id')
           .single();
@@ -116,7 +123,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .update({ 
           onboarding_completed: true,
           dealership_id: dealershipId,
-          updated_at: new Date().toISOString() // Convert Date to string
+          updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
 

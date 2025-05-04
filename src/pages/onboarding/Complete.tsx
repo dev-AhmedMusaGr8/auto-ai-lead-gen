@@ -30,11 +30,7 @@ const Complete = () => {
       console.log("Completing onboarding process...");
       await completeOnboarding();
       
-      // Show success toast
-      toast({
-        title: "Onboarding completed!",
-        description: "Your dealership setup is complete. Welcome to AutoCRMAI!"
-      });
+      // Success toast is handled in completeOnboarding function
       
       // Navigate to dashboard
       navigate('/dashboard', { replace: true });

@@ -30,22 +30,22 @@ const queryClient = new QueryClient();
 // Protected route that checks authentication status
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
   
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
   if (!user) {
-    return <Navigate to="/signin" replace />;
+    return <Navigate to="/signin" state={{ from: location }} replace />;
   }
   
   return <>{children}</>;
 };
 
-// Route that checks if user needs onboarding
-const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
+// Route that checks if user needs admin onboarding
+const AdminOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   const { profile, isLoading } = useAuth();
-  const location = useLocation();
   
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -55,17 +55,24 @@ const OnboardingRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/signin" replace />;
   }
   
-  // If onboarding is completed, redirect to dashboard
-  if (profile.onboarding_completed) {
-    // Don't redirect if already on dashboard
-    if (!location.pathname.includes('/dashboard')) {
-      return <Navigate to="/dashboard" replace />;
+  // If the user isn't an admin, redirect to role onboarding or dashboard
+  if (profile.roles?.[0] !== 'admin') {
+    if (!profile.role_onboarding_completed) {
+      const roleRoutes: Record<string, string> = {
+        'sales_rep': '/role-onboarding/sales',
+        'service_advisor': '/role-onboarding/service',
+        'finance_admin': '/role-onboarding/finance',
+        'marketing': '/role-onboarding/marketing',
+        'manager': '/role-onboarding/manager'
+      };
+      return <Navigate to={roleRoutes[profile.roles[0]] || '/dashboard'} replace />;
     }
+    return <Navigate to="/dashboard" replace />;
   }
   
-  // If onboarding is not completed, redirect to onboarding
-  if (!profile.onboarding_completed && !location.pathname.includes('/onboarding')) {
-    return <Navigate to="/onboarding/welcome" replace />;
+  // If admin onboarding is completed, redirect to dashboard
+  if (profile.onboarding_completed) {
+    return <Navigate to="/dashboard" replace />;
   }
   
   return <>{children}</>;
@@ -96,6 +103,38 @@ const RoleOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Route that checks if user has completed all onboarding requirements
+const DashboardRoute = ({ children }: { children: React.ReactNode }) => {
+  const { profile, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+  
+  if (!profile) {
+    return <Navigate to="/signin" replace />;
+  }
+  
+  // Admin must complete onboarding
+  if (profile.roles?.[0] === 'admin' && !profile.onboarding_completed) {
+    return <Navigate to="/onboarding/welcome" replace />;
+  }
+  
+  // Non-admin must complete role onboarding
+  if (profile.roles?.[0] !== 'admin' && !profile.role_onboarding_completed) {
+    const roleRoutes: Record<string, string> = {
+      'sales_rep': '/role-onboarding/sales',
+      'service_advisor': '/role-onboarding/service',
+      'finance_admin': '/role-onboarding/finance',
+      'marketing': '/role-onboarding/marketing',
+      'manager': '/role-onboarding/manager'
+    };
+    return <Navigate to={roleRoutes[profile.roles[0]] || '/dashboard'} replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 // Define the App component outside of the export to avoid hook issues
 const AppContent = () => {
   return (
@@ -104,12 +143,12 @@ const AppContent = () => {
       <Route path="/" element={<Index />} />
       <Route path="/signin" element={<SignIn />} />
       
-      {/* Admin Onboarding - Protected and checks if onboarding is needed */}
+      {/* Admin Onboarding - Protected and only for admins who need onboarding */}
       <Route path="/onboarding" element={
         <ProtectedRoute>
-          <OnboardingRoute>
+          <AdminOnboardingRoute>
             <OnboardingLayout />
-          </OnboardingRoute>
+          </AdminOnboardingRoute>
         </ProtectedRoute>
       }>
         <Route path="welcome" element={<Welcome />} />
@@ -119,7 +158,7 @@ const AppContent = () => {
         <Route path="complete" element={<Complete />} />
       </Route>
       
-      {/* Role-specific Onboarding - Protected and checks if role onboarding is needed */}
+      {/* Role-specific Onboarding - Protected and only for non-admins who need role onboarding */}
       <Route path="/role-onboarding" element={
         <ProtectedRoute>
           <RoleOnboardingRoute>
@@ -131,10 +170,12 @@ const AppContent = () => {
         <Route path="service" element={<ServiceAdvisorOnboarding />} />
       </Route>
       
-      {/* Role-based Dashboard - Protected */}
+      {/* Role-based Dashboard - Protected and requires completed onboarding */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
-          <RoleDashboardLayout />
+          <DashboardRoute>
+            <RoleDashboardLayout />
+          </DashboardRoute>
         </ProtectedRoute>
       }>
         <Route index element={<Dashboard />} />

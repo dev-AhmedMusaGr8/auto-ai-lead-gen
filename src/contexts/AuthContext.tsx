@@ -55,48 +55,61 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const determineRedirectPath = (profile: UserProfile | null): string => {
+  const determineRedirectPath = (profile: UserProfile | null, isNewSession: boolean = false): string => {
     // If no profile found, go to sign in
     if (!profile) {
       return '/signin';
     }
 
-    // If onboarding is not completed, go to onboarding
-    if (!profile.onboarding_completed) {
-      return '/onboarding/welcome';
+    // For new sessions (like after sign-in), we need to check onboarding status
+    if (isNewSession) {
+      // If onboarding is not completed for admin, go to onboarding
+      if (!profile.onboarding_completed && profile.roles?.[0] === 'admin') {
+        return '/onboarding/welcome';
+      }
+      
+      // If role onboarding is not completed for non-admin users
+      if (!profile.role_onboarding_completed && profile.roles?.[0] !== 'admin') {
+        // Determine which role-specific onboarding to show
+        const roleRoutes: Record<UserRole, string> = {
+          'admin': '/dashboard',
+          'sales_rep': '/role-onboarding/sales',
+          'service_advisor': '/role-onboarding/service',
+          'finance_admin': '/role-onboarding/finance',
+          'marketing': '/role-onboarding/marketing',
+          'manager': '/role-onboarding/manager'
+        };
+        return roleRoutes[profile.roles[0]] || '/dashboard';
+      }
     }
     
-    // If role onboarding is not completed for non-admin users
-    if (!profile.role_onboarding_completed && profile.roles[0] !== 'admin') {
-      // Determine which role-specific onboarding to show
-      const roleRoutes: Record<UserRole, string> = {
-        'admin': '/dashboard',
-        'sales_rep': '/role-onboarding/sales',
-        'service_advisor': '/role-onboarding/service',
-        'finance_admin': '/role-onboarding/finance',
-        'marketing': '/role-onboarding/marketing',
-        'manager': '/role-onboarding/manager'
-      };
-      return roleRoutes[profile.roles[0]] || '/dashboard';
-    }
-    
-    // Default to dashboard
+    // For all cases where onboarding is complete or it's not a new session
     return '/dashboard';
   };
 
-  const redirectUserBasedOnProfile = (profile: UserProfile | null) => {
-    const redirectPath = determineRedirectPath(profile);
+  const redirectUserBasedOnProfile = (profile: UserProfile | null, isNewSession: boolean = false) => {
+    if (!profile) return;
     
-    // Only redirect if we're not already on the correct path
-    // This prevents unnecessary navigation loops
-    if (!location.pathname.startsWith(redirectPath) && 
-        location.pathname !== '/' && 
-        location.pathname !== '/signin') {
-      console.log(`Redirecting to ${redirectPath} from ${location.pathname}`);
+    const redirectPath = determineRedirectPath(profile, isNewSession);
+    const currentPath = location.pathname;
+    
+    // Paths that should never be redirected from
+    const safePublicPaths = ['/', '/signin'];
+    
+    // Only redirect if:
+    // 1. We're not already on the target path
+    // 2. We're not on a safe public path like home or login
+    // 3. We're not already in an onboarding flow when we should be
+    if (!currentPath.startsWith(redirectPath) && 
+        !safePublicPaths.includes(currentPath) &&
+        !(currentPath.includes('/onboarding') && redirectPath.includes('/onboarding')) &&
+        !(currentPath.includes('/role-onboarding') && redirectPath.includes('/role-onboarding'))) {
+      console.log(`Redirecting to ${redirectPath} from ${currentPath}`);
       navigate(redirectPath, { replace: true });
     }
   };
 
+  // Handle auth state changes
   const handleAuthChange = async (event: string, session: Session | null) => {
     console.log("Auth state changed:", event, session?.user?.id);
     
@@ -110,11 +123,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const userProfile = await fetchUserProfile(session.user.id);
           setProfile(userProfile);
           
-          // Only redirect on SIGNED_IN or INITIAL_SESSION to prevent redirect loops
-          if (['SIGNED_IN', 'INITIAL_SESSION'].includes(event)) {
-            // Don't redirect away from the index page or login page
-            if (location.pathname !== '/' && location.pathname !== '/signin') {
-              redirectUserBasedOnProfile(userProfile);
+          // Only redirect on SIGNED_IN event (new login)
+          if (event === 'SIGNED_IN') {
+            // Don't redirect away from the index page (home page)
+            if (location.pathname !== '/') {
+              redirectUserBasedOnProfile(userProfile, true);
             }
           }
         }

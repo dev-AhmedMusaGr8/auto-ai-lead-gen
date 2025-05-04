@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +22,11 @@ const SignIn = () => {
   useEffect(() => {
     if (user && profile) {
       // If onboarding is not completed, go to onboarding
-      if (!profile.onboarding_completed) {
+      if (profile.roles?.[0] === 'admin' && !profile.onboarding_completed) {
         navigate('/onboarding/welcome', { replace: true });
       }
       // If onboarding is completed but role onboarding is not (for non-admins)
-      else if (!profile.role_onboarding_completed && profile.roles[0] !== 'admin') {
+      else if (!profile.role_onboarding_completed && profile.roles?.[0] !== 'admin') {
         // Determine role-specific onboarding route
         const roleRoutes: Record<string, string> = {
           'sales_rep': '/role-onboarding/sales',
