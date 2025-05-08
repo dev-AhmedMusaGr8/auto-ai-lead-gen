@@ -7,12 +7,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
   const { signIn, signUp, user, profile } = useAuth();
   const { toast } = useToast();
@@ -22,24 +24,37 @@ const SignIn = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const inviteEmail = params.get('email');
+    const inviteToken = params.get('token');
+    
     if (inviteEmail) {
       setEmail(inviteEmail);
       // If they have an invite, they should be registering, not logging in
       setIsLogin(false);
     }
-  }, []);
+    
+    // If there's a token, redirect to the accept invite page
+    if (inviteToken) {
+      navigate(`/invite/accept?token=${inviteToken}`);
+    }
+  }, [navigate]);
 
   // Redirect if user is already authenticated
   useEffect(() => {
     if (user && profile) {
+      // If no organization, redirect to org creation
+      if (!profile.org_id) {
+        navigate('/organization/create', { replace: true });
+        return;
+      }
+      
       // Determine where to redirect based on profile
-      if (profile.roles?.[0] === 'admin') {
+      if (profile.is_admin) {
         // If admin onboarding is not completed, go to onboarding
         if (!profile.onboarding_completed) {
           console.log("Admin redirecting to onboarding");
           navigate('/onboarding/welcome', { replace: true });
         } else {
-          navigate('/dashboard', { replace: true });
+          navigate('/dashboard/admin', { replace: true });
         }
       } else {
         // For non-admin users, check role-specific onboarding
@@ -47,15 +62,21 @@ const SignIn = () => {
           console.log("Non-admin redirecting to role onboarding");
           // Determine role-specific onboarding route
           const roleRoutes: Record<string, string> = {
-            'sales_rep': '/role-onboarding/sales',
-            'service_advisor': '/role-onboarding/service',
-            'finance_admin': '/role-onboarding/finance',
-            'marketing': '/role-onboarding/marketing',
-            'manager': '/role-onboarding/manager'
+            'sales': '/role-onboarding/sales',
+            'hr': '/role-onboarding/hr',
+            'finance': '/role-onboarding/finance',
+            'support': '/role-onboarding/support'
           };
-          navigate(roleRoutes[profile.roles[0]] || '/dashboard', { replace: true });
+          navigate(roleRoutes[profile.roles?.[0] || ''] || '/dashboard', { replace: true });
         } else {
-          navigate('/dashboard', { replace: true });
+          // Determine role-specific dashboard
+          const roleDashboards: Record<string, string> = {
+            'sales': '/dashboard/sales',
+            'hr': '/dashboard/hr',
+            'finance': '/dashboard/finance',
+            'support': '/dashboard/support'
+          };
+          navigate(roleDashboards[profile.roles?.[0] || ''] || '/dashboard', { replace: true });
         }
       }
     }
@@ -78,12 +99,22 @@ const SignIn = () => {
           });
         }
       } else {
-        const result = await signUp(email, password, name, 'admin');
+        if (!isLogin && !orgName) {
+          toast({
+            title: "Organization name required",
+            description: "Please enter your organization name to sign up.",
+            variant: "destructive"
+          });
+          setLoading(false);
+          return;
+        }
+        
+        const result = await signUp(email, password, name, orgName);
         if (result && !result.error) {
           if (!result.session) {
             toast({
-              title: "Dealership Account Created",
-              description: "Please check your email to verify your account. Once verified, you can set up your dealership.",
+              title: "Account Created",
+              description: "Please check your email to verify your account. Once verified, you can set up your organization.",
             });
             setIsLogin(true);
           }
@@ -118,10 +149,10 @@ const SignIn = () => {
             <span className="text-2xl font-bold text-gray-800">AutoCRMAI</span>
           </a>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            {isLogin ? "Sign in to your dealership" : "Create your dealership account"}
+            {isLogin ? "Sign in to your account" : "Create your account"}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            {isLogin ? "Don't have a dealership account?" : "Already have a dealership account?"}{" "}
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-[#8B5CF6] hover:text-[#7C3AED] font-medium"
@@ -140,7 +171,7 @@ const SignIn = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div>
-                <Label htmlFor="name">Dealership Name</Label>
+                <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
                   name="name"
@@ -149,12 +180,12 @@ const SignIn = () => {
                   className="mt-1"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your dealership name"
+                  placeholder="Your full name"
                 />
               </div>
             )}
             <div>
-              <Label htmlFor="email">Work Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -163,7 +194,7 @@ const SignIn = () => {
                 className="mt-1"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="your.name@dealership.com"
+                placeholder="your.name@example.com"
               />
             </div>
             <div>
@@ -178,6 +209,21 @@ const SignIn = () => {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
+            {!isLogin && (
+              <div>
+                <Label htmlFor="orgName">Organization Name</Label>
+                <Input
+                  id="orgName"
+                  name="orgName"
+                  type="text"
+                  required
+                  className="mt-1"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  placeholder="Your organization name"
+                />
+              </div>
+            )}
             <div>
               <Button
                 type="submit"

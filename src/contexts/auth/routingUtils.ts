@@ -11,29 +11,47 @@ export const determineRedirectPath = (profile: UserProfile | null, isNewSession:
   if (isNewSession) {
     console.log("Determining redirect for new session, profile:", profile);
     
-    // If onboarding is not completed for admin, go to onboarding
-    if (profile.roles?.[0] === 'admin' && !profile.onboarding_completed) {
+    // If organization is not set, redirect to org creation
+    if (!profile.org_id) {
+      console.log("No organization found, redirecting to create organization");
+      return '/organization/create';
+    }
+    
+    // If user is an admin and onboarding is not completed
+    if (profile.is_admin && !profile.onboarding_completed) {
       console.log("Admin needs onboarding, redirecting to welcome");
       return '/onboarding/welcome';
     }
     
     // If role onboarding is not completed for non-admin users
-    if (profile.roles?.[0] !== 'admin' && !profile.role_onboarding_completed) {
+    if (!profile.is_admin && !profile.role_onboarding_completed) {
       console.log("Non-admin needs role onboarding");
       // Determine which role-specific onboarding to show
       const roleRoutes: Record<UserRole, string> = {
-        'admin': '/dashboard',
-        'sales_rep': '/role-onboarding/sales',
-        'service_advisor': '/role-onboarding/service',
-        'finance_admin': '/role-onboarding/finance',
-        'marketing': '/role-onboarding/marketing',
-        'manager': '/role-onboarding/manager'
+        'org_admin': '/dashboard/admin',
+        'sales': '/role-onboarding/sales',
+        'hr': '/role-onboarding/hr',
+        'finance': '/role-onboarding/finance',
+        'support': '/role-onboarding/support',
+        'admin': '/dashboard' // Legacy role
       };
-      return roleRoutes[profile.roles[0]] || '/dashboard';
+      return roleRoutes[profile.roles?.[0] || 'admin'] || '/dashboard';
     }
   }
   
   // For all cases where onboarding is complete or it's not a new session
+  if (profile.is_admin) {
+    return '/dashboard/admin';
+  } else if (profile.roles?.[0]) {
+    const roleDashboards: Record<string, string> = {
+      'sales': '/dashboard/sales',
+      'hr': '/dashboard/hr',
+      'finance': '/dashboard/finance',
+      'support': '/dashboard/support',
+    };
+    return roleDashboards[profile.roles[0]] || '/dashboard';
+  }
+  
   console.log("Returning dashboard as redirect path");
   return '/dashboard';
 };
@@ -50,7 +68,7 @@ export const redirectUserBasedOnProfile = (
   console.log("Redirect path determined:", redirectPath, "current path:", currentPath);
   
   // Paths that should never be redirected from
-  const safePublicPaths = ['/', '/signin'];
+  const safePublicPaths = ['/', '/signin', '/signup', '/invite/accept'];
   
   // Only redirect if:
   // 1. We're not already on the target path

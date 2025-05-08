@@ -6,7 +6,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.1'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+};
 
 // Create a Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -16,7 +16,9 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 interface InvitationRequest {
   email: string;
   role: string;
-  dealershipId: string;
+  token: string;
+  orgId: string;
+  orgName: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -27,42 +29,26 @@ const handler = async (req: Request): Promise<Response> => {
   
   try {
     // Get the request body
-    const { email, role, dealershipId }: InvitationRequest = await req.json();
+    const { email, role, token, orgId, orgName }: InvitationRequest = await req.json();
     
-    console.log(`Processing invitation request for ${email} with role ${role} at dealership ${dealershipId}`);
+    console.log(`Processing invitation request for ${email} with role ${role} at organization ${orgId}`);
     
-    if (!email || !role || !dealershipId) {
-      throw new Error('Missing required fields: email, role, or dealershipId');
+    if (!email || !role || !token || !orgId || !orgName) {
+      throw new Error('Missing required fields');
     }
     
-    // Fetch dealership information
-    const { data: dealershipData, error: dealershipError } = await supabase
-      .from('dealerships')
-      .select('name')
-      .eq('id', dealershipId)
-      .single();
-      
-    if (dealershipError) {
-      throw new Error(`Failed to fetch dealership: ${dealershipError.message}`);
-    }
-    
-    // Generate a signup URL with pre-filled parameters
-    const signupUrl = new URL(`${req.headers.get('origin') || 'https://example.com'}/signin`);
-    signupUrl.searchParams.set('email', email);
-    signupUrl.searchParams.set('role', role);
-    signupUrl.searchParams.set('dealership', dealershipId);
+    // Generate a signup URL with the invite token
+    const inviteUrl = new URL(`${req.headers.get('origin') || 'https://example.com'}/invite/accept`);
+    inviteUrl.searchParams.set('token', token);
     
     // TODO: In a production environment, integrate with a proper email service like Resend, SendGrid, etc.
     // For now, we'll just log the invitation details
     console.log(`
       Would send email to: ${email}
-      Subject: Invitation to join ${dealershipData.name} on AutoCRMAI
-      Body: You've been invited to join ${dealershipData.name} as a ${role.replace('_', ' ')}. 
-            Click here to accept: ${signupUrl.toString()}
+      Subject: Invitation to join ${orgName} on AutoCRMAI
+      Body: You've been invited to join ${orgName} as a ${role.replace('_', ' ')}. 
+            Click here to accept: ${inviteUrl.toString()}
     `);
-    
-    // In a real implementation, we'd store the invitation in the database
-    // For demo purposes, let's just return success
     
     return new Response(
       JSON.stringify({ 
@@ -77,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
         } 
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing invitation:', error);
     return new Response(
       JSON.stringify({ 

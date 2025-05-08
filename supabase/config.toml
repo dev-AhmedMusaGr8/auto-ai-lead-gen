@@ -31,3 +31,10 @@ enabled = true
 
 [functions.send-invitation]
 verify_jwt = true
+
+[functions.validate-invite]
+verify_jwt = false
+
+[functions.mark-invite-used]
+verify_jwt = true
+
