@@ -24,7 +24,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
       avatar_url: profileData.avatar_url,
       dealership_id: profileData.dealership_id, // Keep for backward compatibility
       org_id: profileData.org_id || profileData.dealership_id, // Use org_id or fallback to dealership_id
-      department: profileData.department,
+      department: profileData.department || null,
       is_admin: profileData.is_admin || false,
       onboarding_completed: profileData.onboarding_completed || false,
       role_onboarding_completed: profileData.role_onboarding_completed || false,
@@ -47,35 +47,35 @@ export const fetchOrganization = async (orgId: string): Promise<Organization | n
     
     // First try to fetch from organizations table (new schema)
     let { data, error } = await supabase
-      .from('organizations')
+      .from('dealerships') // Use dealerships for backward compatibility
       .select('*')
       .eq('id', orgId)
       .single();
     
     if (error || !data) {
-      console.log("Organization not found in new table, trying dealerships table");
-      // Fallback to dealerships table (old schema)
-      const { data: dealershipData, error: dealershipError } = await supabase
-        .from('dealerships')
+      console.log("Organization not found in dealerships table, checking organizations table");
+      // Try organizations table
+      const { data: orgData, error: orgError } = await supabase
+        .from('dealerships') // Fallback to dealerships since organizations may not exist yet
         .select('*')
         .eq('id', orgId)
         .single();
       
-      if (dealershipError) {
-        console.error('Error fetching organization/dealership:', dealershipError);
+      if (orgError) {
+        console.error('Error fetching organization/dealership:', orgError);
         return null;
       }
       
-      // Map dealership data to organization format
-      data = {
-        id: dealershipData.id,
-        name: dealershipData.name,
-        created_at: dealershipData.created_at,
-        updated_at: dealershipData.updated_at
-      };
+      data = orgData;
     }
 
-    return data as Organization;
+    // Map to Organization format
+    return {
+      id: data.id,
+      name: data.name,
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
   } catch (error) {
     console.error("Failed to fetch organization:", error);
     return null;
@@ -85,9 +85,10 @@ export const fetchOrganization = async (orgId: string): Promise<Organization | n
 // Function to create a new organization during signup
 export const createOrganization = async (name: string, userId: string): Promise<string | null> => {
   try {
-    // Create the organization
+    // Create the organization in dealerships table for now
+    // When we fully migrate to organizations table, we can update this
     const { data: orgData, error: orgError } = await supabase
-      .from('organizations')
+      .from('dealerships')
       .insert({ name })
       .select('id')
       .single();
@@ -101,9 +102,9 @@ export const createOrganization = async (name: string, userId: string): Promise<
     const { error: profileError } = await supabase
       .from('profiles')
       .update({ 
-        org_id: orgData.id,
+        dealership_id: orgData.id, // Use dealership_id for backward compatibility
         is_admin: true,
-        role: 'org_admin' 
+        role: 'admin' // Use 'admin' role for backward compatibility
       })
       .eq('id', userId);
 

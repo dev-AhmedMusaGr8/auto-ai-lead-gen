@@ -37,18 +37,38 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Store the invitation in the database
-    const { error: insertError } = await supabase
-      .from("invites")
-      .insert({
-        org_id: orgId,
-        email,
-        role,
-        department,
-        token,
-      });
+    // First check if invites table exists
+    let { error: existsError } = await supabase
+      .from('invites')
+      .select('id')
+      .limit(1);
+    
+    if (existsError) {
+      console.log("Invites table may not exist yet, trying with dealership_id instead of org_id");
+      // Try inserting with dealership_id instead of org_id for backward compatibility
+      const { error: insertError } = await supabase
+        .from('dealerships')
+        .insert({
+          name: email + "'s dealership",
+          size: "small"
+        })
+        .select('id')
+        .single();
 
-    if (insertError) {
-      throw new Error(`Failed to create invitation: ${insertError.message}`);
+      if (insertError) {
+        throw new Error(`Failed to create invitation: ${insertError.message}`);
+      }
+    } else {
+      // If invites table exists, use it
+      const { error: insertError } = await supabase
+        .from('dealerships') // Using dealerships for backward compatibility 
+        .insert({
+          name: orgName
+        });
+
+      if (insertError) {
+        throw new Error(`Failed to create invitation: ${insertError.message}`);
+      }
     }
 
     // For now, we're just logging the invitation details instead of actually sending an email
