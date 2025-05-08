@@ -45,30 +45,21 @@ const handler = async (req: Request): Promise<Response> => {
     
     if (existsError) {
       console.log("Invites table may not exist yet, trying with dealership_id instead of org_id");
-      // Try inserting with dealership_id instead of org_id for backward compatibility
+      // Create a temporary dealership for this invite
       const { error: insertError } = await supabase
         .from('dealerships')
         .insert({
-          name: email + "'s dealership",
-          size: "small"
+          name: orgName || email + "'s dealership"
         })
         .select('id')
         .single();
 
       if (insertError) {
-        throw new Error(`Failed to create invitation: ${insertError.message}`);
+        throw new Error(`Failed to create temporary dealership: ${insertError.message}`);
       }
     } else {
-      // If invites table exists, use it
-      const { error: insertError } = await supabase
-        .from('dealerships') // Using dealerships for backward compatibility 
-        .insert({
-          name: orgName
-        });
-
-      if (insertError) {
-        throw new Error(`Failed to create invitation: ${insertError.message}`);
-      }
+      // If invites table exists, use it (not implemented yet)
+      console.log("Invites table exists, but not yet implemented");
     }
 
     // For now, we're just logging the invitation details instead of actually sending an email

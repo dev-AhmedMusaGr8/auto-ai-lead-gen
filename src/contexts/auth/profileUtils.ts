@@ -16,22 +16,35 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
       return null;
     }
 
+    // Get user roles from user_roles table
+    const { data: userRoles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId);
+
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
+    }
+
     // Map the profile data to our UserProfile interface
     const userProfile: UserProfile = {
       id: profileData.id,
       email: profileData.email,
       full_name: profileData.full_name,
       avatar_url: profileData.avatar_url,
-      dealership_id: profileData.dealership_id, // Keep for backward compatibility
-      org_id: profileData.org_id || profileData.dealership_id, // Use org_id or fallback to dealership_id
-      department: profileData.department || null,
-      is_admin: profileData.is_admin || false,
-      onboarding_completed: profileData.onboarding_completed || false,
-      role_onboarding_completed: profileData.role_onboarding_completed || false,
-      roles: profileData.user_roles && Array.isArray(profileData.user_roles) 
-        ? profileData.user_roles.map((r: any) => r.role as UserRole)
-        : profileData.role ? [profileData.role as UserRole] : ['admin'] // Use role from profile or default
+      dealership_id: profileData.dealership_id,
+      org_id: profileData.dealership_id, // Use dealership_id as org_id for compatibility
+      department: null, // Default to null as it's not in the actual table
+      is_admin: false, // Default to false, we'll update based on roles
+      onboarding_completed: profileData.onboarding_completed,
+      role_onboarding_completed: profileData.role_onboarding_completed,
+      created_at: profileData.created_at,
+      updated_at: profileData.updated_at,
+      roles: userRoles ? userRoles.map((r: any) => r.role as UserRole) : ['admin'] // Default to admin if no roles
     };
+    
+    // Set is_admin based on roles
+    userProfile.is_admin = userProfile.roles.includes('admin');
 
     console.log("Fetched user profile:", userProfile);
     return userProfile;
@@ -45,28 +58,15 @@ export const fetchOrganization = async (orgId: string): Promise<Organization | n
   try {
     console.log("Fetching organization:", orgId);
     
-    // First try to fetch from organizations table (new schema)
-    let { data, error } = await supabase
-      .from('dealerships') // Use dealerships for backward compatibility
+    const { data, error } = await supabase
+      .from('dealerships')
       .select('*')
       .eq('id', orgId)
       .single();
     
-    if (error || !data) {
-      console.log("Organization not found in dealerships table, checking organizations table");
-      // Try organizations table
-      const { data: orgData, error: orgError } = await supabase
-        .from('dealerships') // Fallback to dealerships since organizations may not exist yet
-        .select('*')
-        .eq('id', orgId)
-        .single();
-      
-      if (orgError) {
-        console.error('Error fetching organization/dealership:', orgError);
-        return null;
-      }
-      
-      data = orgData;
+    if (error) {
+      console.error('Error fetching organization/dealership:', error);
+      return null;
     }
 
     // Map to Organization format
@@ -85,8 +85,7 @@ export const fetchOrganization = async (orgId: string): Promise<Organization | n
 // Function to create a new organization during signup
 export const createOrganization = async (name: string, userId: string): Promise<string | null> => {
   try {
-    // Create the organization in dealerships table for now
-    // When we fully migrate to organizations table, we can update this
+    // Create the organization in dealerships table
     const { data: orgData, error: orgError } = await supabase
       .from('dealerships')
       .insert({ name })
@@ -98,19 +97,24 @@ export const createOrganization = async (name: string, userId: string): Promise<
       return null;
     }
 
-    // Update the user's profile with the org ID and make them an admin
+    // Update the user's profile with the dealership_id
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ 
-        dealership_id: orgData.id, // Use dealership_id for backward compatibility
-        is_admin: true,
-        role: 'admin' // Use 'admin' role for backward compatibility
-      })
+      .update({ dealership_id: orgData.id })
       .eq('id', userId);
 
     if (profileError) {
       console.error('Error updating profile with org ID:', profileError);
       return null;
+    }
+
+    // Add admin role to user_roles table
+    const { error: roleError } = await supabase
+      .from('user_roles')
+      .insert({ user_id: userId, role: 'admin' });
+
+    if (roleError) {
+      console.error('Error adding admin role:', roleError);
     }
 
     return orgData.id;

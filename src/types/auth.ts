@@ -1,7 +1,7 @@
 
 import { User, Session } from '@supabase/supabase-js';
 
-export type UserRole = 'org_admin' | 'sales' | 'finance' | 'support' | 'admin' | 'hr';
+export type UserRole = 'org_admin' | 'sales' | 'finance' | 'support' | 'admin' | 'hr' | 'sales_rep' | 'service_advisor' | 'finance_admin' | 'marketing' | 'manager';
 
 export interface Organization {
   id: string;
@@ -21,8 +21,10 @@ export interface UserProfile {
   roles: UserRole[];
   department: string | null;
   is_admin: boolean;
-  onboarding_completed: boolean;
-  role_onboarding_completed: boolean;
+  onboarding_completed: boolean | null;
+  role_onboarding_completed: boolean | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Invite {

@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -312,20 +311,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error('Only organization admins can transfer admin privileges');
       }
       
-      // Since we don't have the RPC function yet, we'll do the transfer manually
-      const { error: updateOldAdminError } = await supabase
-        .from('profiles')
-        .update({ is_admin: false })
-        .eq('id', user!.id);
+      // First, remove admin role from current user
+      const { error: removeRoleError } = await supabase
+        .from('user_roles')
+        .delete()
+        .match({ user_id: user!.id, role: 'admin' });
       
-      if (updateOldAdminError) throw updateOldAdminError;
+      if (removeRoleError) throw removeRoleError;
       
-      const { error: updateNewAdminError } = await supabase
-        .from('profiles')
-        .update({ is_admin: true })
-        .eq('id', newAdminId);
+      // Then add admin role to new admin
+      const { error: addRoleError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: newAdminId, role: 'admin' });
       
-      if (updateNewAdminError) throw updateNewAdminError;
+      if (addRoleError) throw addRoleError;
       
       toast({
         title: "Admin privileges transferred",

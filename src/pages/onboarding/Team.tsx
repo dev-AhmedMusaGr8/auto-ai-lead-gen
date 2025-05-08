@@ -36,7 +36,7 @@ const Team = () => {
     
     setIsInviting(true);
     try {
-      const result = await inviteUser(email, role, profile.dealership_id);
+      const result = await inviteUser(email, role, profile.department || undefined);
       
       if (result.success) {
         // Add to the invited members list
