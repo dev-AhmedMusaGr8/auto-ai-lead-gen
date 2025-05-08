@@ -29,11 +29,16 @@ export const determineRedirectPath = (profile: UserProfile | null, isNewSession:
       // Determine which role-specific onboarding to show
       const roleRoutes: Record<UserRole, string> = {
         'org_admin': '/dashboard/admin',
+        'admin': '/dashboard/admin',
         'sales': '/role-onboarding/sales',
         'hr': '/role-onboarding/hr',
         'finance': '/role-onboarding/finance',
         'support': '/role-onboarding/support',
-        'admin': '/dashboard' // Legacy role
+        'sales_rep': '/role-onboarding/sales',
+        'service_advisor': '/role-onboarding/service',
+        'finance_admin': '/role-onboarding/finance',
+        'marketing': '/role-onboarding/marketing',
+        'manager': '/dashboard/admin'
       };
       return roleRoutes[profile.roles?.[0] || 'admin'] || '/dashboard';
     }
@@ -48,6 +53,11 @@ export const determineRedirectPath = (profile: UserProfile | null, isNewSession:
       'hr': '/dashboard/hr',
       'finance': '/dashboard/finance',
       'support': '/dashboard/support',
+      'sales_rep': '/dashboard/sales',
+      'service_advisor': '/dashboard/service',
+      'finance_admin': '/dashboard/finance',
+      'marketing': '/dashboard/marketing',
+      'manager': '/dashboard/admin'
     };
     return roleDashboards[profile.roles[0]] || '/dashboard';
   }
