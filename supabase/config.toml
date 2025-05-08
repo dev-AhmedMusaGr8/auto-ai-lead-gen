@@ -37,4 +37,3 @@ verify_jwt = false
 
 [functions.mark-invite-used]
 verify_jwt = true
-

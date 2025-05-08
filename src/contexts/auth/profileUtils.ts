@@ -16,9 +16,18 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
       return null;
     }
 
-    // Fix the type issue with user_roles
+    // Map the profile data to our UserProfile interface
     const userProfile: UserProfile = {
-      ...profileData,
+      id: profileData.id,
+      email: profileData.email,
+      full_name: profileData.full_name,
+      avatar_url: profileData.avatar_url,
+      dealership_id: profileData.dealership_id, // Keep for backward compatibility
+      org_id: profileData.org_id || profileData.dealership_id, // Use org_id or fallback to dealership_id
+      department: profileData.department,
+      is_admin: profileData.is_admin || false,
+      onboarding_completed: profileData.onboarding_completed || false,
+      role_onboarding_completed: profileData.role_onboarding_completed || false,
       roles: profileData.user_roles && Array.isArray(profileData.user_roles) 
         ? profileData.user_roles.map((r: any) => r.role as UserRole)
         : profileData.role ? [profileData.role as UserRole] : ['admin'] // Use role from profile or default
@@ -35,15 +44,35 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
 export const fetchOrganization = async (orgId: string): Promise<Organization | null> => {
   try {
     console.log("Fetching organization:", orgId);
-    const { data, error } = await supabase
+    
+    // First try to fetch from organizations table (new schema)
+    let { data, error } = await supabase
       .from('organizations')
       .select('*')
       .eq('id', orgId)
       .single();
-
-    if (error) {
-      console.error('Error fetching organization:', error);
-      return null;
+    
+    if (error || !data) {
+      console.log("Organization not found in new table, trying dealerships table");
+      // Fallback to dealerships table (old schema)
+      const { data: dealershipData, error: dealershipError } = await supabase
+        .from('dealerships')
+        .select('*')
+        .eq('id', orgId)
+        .single();
+      
+      if (dealershipError) {
+        console.error('Error fetching organization/dealership:', dealershipError);
+        return null;
+      }
+      
+      // Map dealership data to organization format
+      data = {
+        id: dealershipData.id,
+        name: dealershipData.name,
+        created_at: dealershipData.created_at,
+        updated_at: dealershipData.updated_at
+      };
     }
 
     return data as Organization;
@@ -74,7 +103,7 @@ export const createOrganization = async (name: string, userId: string): Promise<
       .update({ 
         org_id: orgData.id,
         is_admin: true,
-        role: 'org_admin'
+        role: 'org_admin' 
       })
       .eq('id', userId);
 

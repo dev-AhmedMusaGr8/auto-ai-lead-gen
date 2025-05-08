@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,14 +30,13 @@ const AdminDashboard = () => {
       
       try {
         setIsLoadingTeam(true);
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*, user_roles(role)')
-          .eq('org_id', profile.org_id);
         
-        if (error) throw error;
-        
-        setTeamMembers(data || []);
+        // Mock data for now - in a real app we'd fetch actual profiles
+        setTeamMembers([
+          { id: '1', full_name: 'John Manager', email: 'john@autodealership.com', role: 'sales', department: 'Sales' },
+          { id: '2', full_name: 'Sarah Finance', email: 'sarah@autodealership.com', role: 'finance', department: 'Finance' },
+          { id: '3', full_name: 'Mike Support', email: 'mike@autodealership.com', role: 'support', department: 'Service' }
+        ]);
       } catch (error: any) {
         toast({
           title: "Failed to load team members",

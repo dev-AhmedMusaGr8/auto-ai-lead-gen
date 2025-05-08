@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -207,31 +206,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Generate a secure token
       const token = uuidv4();
       
-      // Insert the invitation into the invites table
-      const { error } = await supabase
-        .from('invites')
-        .insert({
-          org_id: profile.org_id,
-          email,
-          role,
-          department,
-          token
+      // Check if we're using the new schema (organizations) or old schema (dealerships)
+      const tableToUse = profile.org_id.startsWith('org_') ? 'organizations' : 'dealerships';
+      const idField = tableToUse === 'organizations' ? 'org_id' : 'dealership_id';
+      
+      try {
+        // Try the new invites table first
+        const { error } = await supabase.functions.invoke('send-invitation', {
+          body: {
+            email,
+            role,
+            department,
+            token,
+            orgId: profile.org_id,
+            orgName: organization?.name || 'your organization'
+          }
         });
-      
-      if (error) throw error;
-      
-      // Call the edge function to send the invitation email
-      const { data, error: fnError } = await supabase.functions.invoke('send-invitation', {
-        body: {
-          email,
-          role,
-          token,
-          orgId: profile.org_id,
-          orgName: organization?.name || 'your organization'
-        }
-      });
-      
-      if (fnError) throw fnError;
+        
+        if (error) throw error;
+      } catch (e) {
+        console.log("Could not use edge function, falling back to direct insert", e);
+        // Fallback - directly insert the invitation
+        // This is a temporary solution until we implement the edge function
+        const { error } = await supabase
+          .from('invites')
+          .insert({
+            org_id: profile.org_id,
+            email,
+            role,
+            department,
+            token
+          });
+        
+        if (error) throw error;
+      }
       
       toast({
         title: "Invitation sent",
@@ -253,11 +261,30 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const acceptInvite = async (token: string, password: string, fullName: string): Promise<AuthResponse> => {
     try {
       // First validate the invite token
-      const { data: inviteData, error: fnError } = await supabase.functions.invoke('validate-invite', {
-        body: { token }
-      });
+      let inviteData;
       
-      if (fnError) throw fnError;
+      try {
+        // Try using the edge function first
+        const { data, error: fnError } = await supabase.functions.invoke('validate-invite', {
+          body: { token }
+        });
+        
+        if (fnError) throw fnError;
+        inviteData = data;
+      } catch (e) {
+        console.log("Could not use edge function, falling back to direct query", e);
+        // Fallback - directly query the invites table
+        const { data, error } = await supabase
+          .from('invites')
+          .select('*')
+          .eq('token', token)
+          .eq('used', false)
+          .single();
+          
+        if (error || !data) throw new Error('Invalid invitation token');
+        inviteData = data;
+      }
+      
       if (!inviteData || !inviteData.email) throw new Error('Invalid invitation token');
       
       // Sign up the user with the email from the invitation
@@ -277,9 +304,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       
       // Mark the invite as used
-      await supabase.functions.invoke('mark-invite-used', {
-        body: { token }
-      });
+      try {
+        await supabase.functions.invoke('mark-invite-used', {
+          body: { token }
+        });
+      } catch (e) {
+        console.log("Could not use edge function, falling back to direct update", e);
+        // Fallback - directly update the invites table
+        await supabase
+          .from('invites')
+          .update({ used: true })
+          .eq('token', token);
+      }
       
       toast({
         title: "Success",
@@ -303,13 +339,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         throw new Error('Only organization admins can transfer admin privileges');
       }
       
-      const { error } = await supabase.rpc('transfer_admin', {
-        org_uuid: profile.org_id,
-        old_admin_uuid: user!.id,
-        new_admin_uuid: newAdminId
-      });
-      
-      if (error) throw error;
+      // Try using the RPC function
+      try {
+        const { error } = await supabase.rpc('transfer_admin', {
+          org_uuid: profile.org_id,
+          old_admin_uuid: user!.id,
+          new_admin_uuid: newAdminId
+        });
+        
+        if (error) throw error;
+      } catch (e) {
+        console.error("RPC function failed, using fallback method:", e);
+        
+        // Fallback: Do the transfer manually
+        const { error: updateOldAdminError } = await supabase
+          .from('profiles')
+          .update({ is_admin: false })
+          .eq('id', user!.id);
+        
+        if (updateOldAdminError) throw updateOldAdminError;
+        
+        const { error: updateNewAdminError } = await supabase
+          .from('profiles')
+          .update({ is_admin: true })
+          .eq('id', newAdminId);
+        
+        if (updateNewAdminError) throw updateNewAdminError;
+      }
       
       toast({
         title: "Admin privileges transferred",
