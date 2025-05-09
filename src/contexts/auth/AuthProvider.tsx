@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -64,12 +63,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.log("User profile for redirect:", userProfile);
             console.log("Current path:", location.pathname);
             
-            // Don't immediately redirect during signup if we're on the signin page
-            // Let the signup handler in SignIn.tsx handle organization creation first
-            if (event !== 'SIGNED_UP' || location.pathname !== '/signin') {
+            // For signup, always go to organization creation first
+            if (event === 'SIGNED_UP') {
+              // If signup, always redirect to org creation first
+              if (location.pathname !== '/organization/create') {
+                console.log("New signup, redirecting to organization creation");
+                navigate('/organization/create', { replace: true });
+              }
+            } else {
+              // For signin, use normal redirection logic based on profile
               setTimeout(() => {
                 redirectUserBasedOnProfile(userProfile, true, navigate, location.pathname);
-              }, 500); // Small delay to ensure DB updates are complete
+              }, 300);
             }
           }
         }

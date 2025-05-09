@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { createOrganization } from "@/contexts/auth/profileUtils";
@@ -18,24 +17,60 @@ const CreateOrganization = () => {
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [pageLoading, setPageLoading] = useState(true);
 
-  // Check if user already has an organization and redirect accordingly
+  // Initialize page and check if user already has an organization
   useEffect(() => {
-    if (profile) {
-      if (profile.org_id || profile.dealership_id) {
-        console.log("User already has an organization, redirecting");
+    const checkProfile = async () => {
+      try {
+        setPageLoading(true);
         
-        // If admin onboarding is not completed, redirect to onboarding
-        if (profile.is_admin && !profile.onboarding_completed) {
-          navigate('/onboarding/welcome', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
+        // If no user yet, keep waiting
+        if (!user) {
+          console.log("No user found yet, waiting...");
+          return;
         }
-      } else {
-        console.log("User has no organization, staying on create page");
+        
+        console.log("User found, checking profile:", profile);
+        
+        // If we have a profile AND an org, redirect
+        if (profile) {
+          if (profile.org_id || profile.dealership_id) {
+            console.log("User already has an organization, redirecting");
+            
+            // If admin onboarding is not completed, redirect to onboarding
+            if (profile.is_admin && !profile.onboarding_completed) {
+              navigate('/onboarding/welcome', { replace: true });
+            } else {
+              navigate('/dashboard', { replace: true });
+            }
+          } else {
+            console.log("User has no organization, staying on create page");
+            setPageLoading(false);
+          }
+        } else if (user) {
+          // We have a user but no profile, try to refresh it
+          console.log("User exists but no profile, refreshing profile data");
+          if (refreshProfile) {
+            const refreshedProfile = await refreshProfile();
+            if (!refreshedProfile) {
+              // Still no profile, but we should allow organization creation
+              console.log("No profile after refresh, allowing org creation");
+              setPageLoading(false);
+            }
+          } else {
+            // No refresh function, but allow organization creation anyway
+            setPageLoading(false);
+          }
+        }
+      } catch (err) {
+        console.error("Error in org page initialization:", err);
+        setPageLoading(false);
       }
-    }
-  }, [profile, navigate]);
+    };
+    
+    checkProfile();
+  }, [user, profile, navigate, refreshProfile]);
 
   // Reset error message when organization name changes
   useEffect(() => {
@@ -79,11 +114,8 @@ const CreateOrganization = () => {
         if (refreshProfile) {
           await refreshProfile();
           
-          // Wait a moment for the profile to update
-          setTimeout(() => {
-            // Go to onboarding since this is a new org
-            navigate('/onboarding/welcome', { replace: true });
-          }, 300);
+          // Navigate to onboarding welcome page
+          navigate('/onboarding/welcome', { replace: true });
         } else {
           navigate('/onboarding/welcome', { replace: true });
         }
@@ -102,6 +134,16 @@ const CreateOrganization = () => {
       setLoading(false);
     }
   };
+
+  // Show loading state while checking profile
+  if (pageLoading) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

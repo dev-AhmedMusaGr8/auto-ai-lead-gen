@@ -99,9 +99,7 @@ export const createOrganization = async (name: string, userId: string): Promise<
   try {
     console.log(`Creating organization "${name}" for user ${userId}`);
     
-    // First check if there is row-level security preventing the insert
-    // Removed the rpc call to "get_service_role" as it's not defined in TypeScript types
-    // and use the edge function approach directly
+    // Use the edge function approach for organization creation
     try {
       console.log("Attempting to use edge function for organization creation");
       const { data: funcData, error: funcError } = await supabase.functions.invoke('create-organization', {
@@ -110,13 +108,14 @@ export const createOrganization = async (name: string, userId: string): Promise<
       
       if (funcError) {
         console.error('Edge function error:', funcError);
-        return null;
+        throw funcError;
       }
       
       if (funcData?.id) {
         console.log("Organization created via edge function:", funcData);
         
         // Update the user's profile with the dealership_id
+        // Try direct update first
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
@@ -128,18 +127,25 @@ export const createOrganization = async (name: string, userId: string): Promise<
         if (profileError) {
           console.error('Error updating profile with org ID after edge function:', profileError);
           
-          // Try the update-profile edge function if direct update fails
-          const { data: updateData, error: updateError } = await supabase.functions.invoke('update-profile', {
-            body: { 
-              userId: userId,
-              dealership_id: funcData.id
+          // Try the update-profile edge function as fallback
+          try {
+            console.log("Attempting to update profile via edge function");
+            const { data: updateData, error: updateError } = await supabase.functions.invoke('update-profile', {
+              body: { 
+                userId: userId,
+                dealership_id: funcData.id
+              }
+            });
+            
+            if (updateError) {
+              console.error('Error with update-profile edge function:', updateError);
+              // Continue anyway since the organization was created
+            } else {
+              console.log('Profile updated via edge function:', updateData);
             }
-          });
-          
-          if (updateError) {
-            console.error('Error with update-profile edge function:', updateError);
-          } else {
-            console.log('Profile updated via edge function:', updateData);
+          } catch (updateErr) {
+            console.error("Error calling update-profile function:", updateErr);
+            // Continue anyway since the organization was created
           }
         }
         
@@ -152,6 +158,7 @@ export const createOrganization = async (name: string, userId: string): Promise<
 
         // Add admin role to user_roles table if not exists
         if (!existingRole || existingRole.length === 0) {
+          console.log("Adding admin role to user");
           const { error: roleError } = await supabase
             .from('user_roles')
             .insert({ user_id: userId, role: 'admin' });
@@ -166,16 +173,66 @@ export const createOrganization = async (name: string, userId: string): Promise<
         }
         
         return funcData.id;
+      } else {
+        throw new Error("Edge function returned no organization ID");
       }
     } catch (funcErr) {
       console.error('Error with edge function:', funcErr);
+      
+      // Try direct database operation as a fallback
+      console.log("Trying direct database operation as fallback");
+      
+      const { data: orgData, error: orgError } = await supabase
+        .from('dealerships')
+        .insert({
+          name,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+        
+      if (orgError) {
+        console.error('Error creating organization directly:', orgError);
+        throw orgError;
+      }
+      
+      console.log("Organization created directly:", orgData);
+      
+      // Update the user's profile with the dealership_id
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          dealership_id: orgData.id,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+        
+      if (profileError) {
+        console.error('Error updating profile:', profileError);
+      }
+      
+      // Add admin role if not exists
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('role', 'admin');
+        
+      if (!existingRole || existingRole.length === 0) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: userId, role: 'admin' });
+          
+        if (roleError) {
+          console.error('Error adding admin role:', roleError);
+        }
+      }
+      
+      return orgData.id;
     }
-    
-    // If we get here, edge function failed or returned no data
-    console.error("Failed to create organization via edge function");
-    return null;
   } catch (error) {
     console.error("Failed to create organization:", error);
-    return null;
+    throw error;
   }
 };
