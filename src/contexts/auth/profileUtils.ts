@@ -80,11 +80,11 @@ export const fetchOrganization = async (orgId: string): Promise<Organization | n
 
     console.log("Organization data:", data);
 
-    // Map to Organization format
+    // Map to Organization format - remove plan property as it doesn't exist in database
     return {
       id: data.id,
       name: data.name,
-      plan: data.plan || undefined,
+      // The plan field isn't in the database schema, so we won't include it
       created_at: data.created_at,
       updated_at: data.updated_at
     };

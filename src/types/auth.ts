@@ -1,4 +1,3 @@
-
 import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'org_admin' | 'sales' | 'finance' | 'support' | 'admin' | 'hr' | 'sales_rep' | 'service_advisor' | 'finance_admin' | 'marketing' | 'manager';
@@ -6,7 +5,7 @@ export type UserRole = 'org_admin' | 'sales' | 'finance' | 'support' | 'admin' |
 export interface Organization {
   id: string;
   name: string;
-  plan?: string;
+  plan?: string; // Make plan optional since it doesn't exist in the database
   created_at: string;
   updated_at: string;
 }
