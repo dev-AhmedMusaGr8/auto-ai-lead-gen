@@ -8,7 +8,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { redirectUserBasedOnProfile } from "@/contexts/auth/routingUtils";
-import { createOrganization } from "@/contexts/auth/profileUtils";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -16,8 +15,8 @@ const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
-  const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { signIn, signUp, user, profile, session } = useAuth();
@@ -64,7 +63,7 @@ const SignIn = () => {
     if (errorMessage) {
       setErrorMessage(null);
     }
-  }, [email, password, name, orgName, isLogin]);
+  }, [email, password, confirmPassword, name, isLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,18 +86,19 @@ const SignIn = () => {
           console.log("Sign in successful", result);
         }
       } else {
-        if (!orgName.trim()) {
-          setErrorMessage("Organization name is required");
+        // Check if passwords match
+        if (password !== confirmPassword) {
+          setErrorMessage("Passwords do not match");
           toast({
-            title: "Organization name required",
-            description: "Please enter your organization name to sign up.",
+            title: "Password mismatch",
+            description: "The password and confirmation password do not match.",
             variant: "destructive"
           });
           setLoading(false);
           return;
         }
         
-        console.log("Attempting to sign up with:", email, name, orgName);
+        console.log("Attempting to sign up with:", email, name);
         const result = await signUp(email, password, name);
         
         if (result && !result.error) {
@@ -111,26 +111,13 @@ const SignIn = () => {
           } else {
             console.log("Sign up successful with session, user ID:", result.user?.id);
             
-            if (result.user) {
-              // Create organization for the new user since it wasn't created during signUp
-              console.log("Creating organization for new user");
-              const orgId = await createOrganization(orgName, result.user.id);
-              
-              if (orgId) {
-                toast({
-                  title: "Organization Created",
-                  description: "Your account and organization have been set up successfully.",
-                });
-                
-                // Wait for a short delay to ensure all database operations complete
-                setTimeout(() => {
-                  navigate('/onboarding/welcome', { replace: true });
-                }, 1000);
-              } else {
-                setErrorMessage("Failed to create organization. You can try again after signing in.");
-                console.error("Failed to create organization during signup");
-              }
-            }
+            // Navigate directly to create organization page
+            toast({
+              title: "Account Created",
+              description: "Your account has been created successfully. Now let's set up your organization.",
+            });
+            
+            navigate('/organization/create', { replace: true });
           }
         } else if (result && result.error) {
           setErrorMessage(result.error.message || "Failed to create account");
@@ -249,16 +236,16 @@ const SignIn = () => {
             </div>
             {!isLogin && (
               <div>
-                <Label htmlFor="orgName">Organization Name</Label>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <Input
-                  id="orgName"
-                  name="orgName"
-                  type="text"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
                   required
                   className="mt-1"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  placeholder="Your dealership name"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
                   disabled={loading}
                 />
               </div>

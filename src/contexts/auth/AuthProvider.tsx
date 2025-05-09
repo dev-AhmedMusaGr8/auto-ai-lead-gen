@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -124,6 +125,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Add this method to manually refresh profile data
+  const refreshProfile = async () => {
+    if (!user) return null;
+    
+    try {
+      console.log("Manually refreshing user profile for:", user.id);
+      setIsLoading(true);
+      
+      const userProfile = await fetchUserProfile(user.id);
+      setProfile(userProfile);
+      
+      // Also refresh organization if available
+      if (userProfile?.org_id || userProfile?.dealership_id) {
+        const orgId = userProfile.org_id || userProfile.dealership_id;
+        if (orgId) {
+          const org = await fetchOrganization(orgId);
+          setOrganization(org);
+        }
+      }
+      
+      return userProfile;
+    } catch (error) {
+      console.error("Error refreshing profile:", error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       console.log("Attempting sign in for:", email);
@@ -148,9 +178,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, orgName?: string): Promise<AuthResponse> => {
+  const signUp = async (email: string, password: string, fullName: string): Promise<AuthResponse> => {
     try {
-      console.log(`Signing up user with email ${email}, name ${fullName}, organization ${orgName || 'none'}`);
+      console.log(`Signing up user with email ${email}, name ${fullName}`);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -165,9 +195,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error;
       
       console.log("Signup successful. User:", data.user?.id, "Session:", data.session ? "exists" : "none");
-      
-      // We'll handle organization creation in the SignIn component after signup
-      // This ensures we have proper control over the flow including error handling
       
       // Only show success message if there's no session (email confirmation required)
       if (!data.session) {
@@ -372,7 +399,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signOut,
       inviteUser,
       acceptInvite,
-      transferAdmin
+      transferAdmin,
+      refreshProfile
     }}>
       {children}
     </AuthContext.Provider>

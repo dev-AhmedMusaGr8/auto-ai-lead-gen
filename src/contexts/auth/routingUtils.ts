@@ -99,10 +99,12 @@ export const redirectUserBasedOnProfile = (
   // 1. We're not already on the target path
   // 2. We're not on a safe public path like home or login
   // 3. We're not already in an onboarding flow when we should be
+  // 4. We're not already in the dashboard section when we should be
   if (!currentPath.startsWith(redirectPath) && 
       !safePublicPaths.includes(currentPath) &&
       !(currentPath.includes('/onboarding') && redirectPath.includes('/onboarding')) &&
       !(currentPath.includes('/role-onboarding') && redirectPath.includes('/role-onboarding')) &&
+      !(currentPath.includes('/dashboard') && redirectPath.includes('/dashboard')) &&
       !(currentPath === '/organization/create' && redirectPath === '/onboarding/welcome')) {
     console.log(`Redirecting to ${redirectPath} from ${currentPath}`);
     navigate(redirectPath, { replace: true });

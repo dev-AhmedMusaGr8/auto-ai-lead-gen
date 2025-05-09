@@ -15,7 +15,7 @@ const CreateOrganization = () => {
   const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, profile, session } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -75,15 +75,17 @@ const CreateOrganization = () => {
           description: `Your organization "${orgName}" has been created successfully.`
         });
         
-        // Force a reload of the auth context to get updated profile
-        if (session) {
-          // Wait a bit for the database to update
+        // Force a refresh of the auth context to get updated profile
+        if (refreshProfile) {
+          await refreshProfile();
+          
+          // Wait a moment for the profile to update
           setTimeout(() => {
             // Go to onboarding since this is a new org
             navigate('/onboarding/welcome', { replace: true });
-          }, 500);
+          }, 300);
         } else {
-          navigate('/signin', { replace: true });
+          navigate('/onboarding/welcome', { replace: true });
         }
       } else {
         throw new Error("Failed to create organization");

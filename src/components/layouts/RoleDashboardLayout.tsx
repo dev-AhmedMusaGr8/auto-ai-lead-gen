@@ -15,7 +15,8 @@ import {
   MessageSquare,
   Bell,
   LogOut,
-  Shield
+  Shield,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -82,13 +83,21 @@ const getRoleNavItems = (role: string) => {
 };
 
 const RoleDashboardLayout = () => {
-  const { profile, isLoading, signOut } = useAuth();
+  const { profile, isLoading, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const role = profile?.roles?.[0] || 'admin';
   
   console.log("RoleDashboardLayout: Current location", location.pathname);
   console.log("RoleDashboardLayout: Current user profile", profile);
+  
+  // Force profile refresh when component mounts
+  useEffect(() => {
+    if (refreshProfile) {
+      console.log("Refreshing profile data from RoleDashboardLayout");
+      refreshProfile();
+    }
+  }, [refreshProfile]);
   
   useEffect(() => {
     if (!isLoading && !profile) {
@@ -99,7 +108,12 @@ const RoleDashboardLayout = () => {
   const navItems = getRoleNavItems(role);
   
   if (isLoading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading dashboard...</span>
+      </div>
+    );
   }
   
   if (!profile) {
@@ -136,7 +150,9 @@ const RoleDashboardLayout = () => {
                   key={index}
                   to={item.href}
                   className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    location.pathname === item.href ? 'bg-gray-200' : 'hover:bg-gray-200'
+                    location.pathname === item.href || 
+                    (item.href === '/dashboard/admin' && location.pathname === '/dashboard') ? 
+                    'bg-gray-200' : 'hover:bg-gray-200'
                   }`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />

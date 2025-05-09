@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,7 +39,14 @@ import HROnboarding from "./pages/role-onboarding/HROnboarding";
 import FinanceOnboarding from "./pages/role-onboarding/FinanceOnboarding";
 import SupportOnboarding from "./pages/role-onboarding/SupportOnboarding";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Protected route that checks authentication status
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -186,6 +193,15 @@ const DashboardRoute = ({ children, adminOnly = false }: { children: React.React
 
 // Define the App component outside of the export to avoid hook issues
 const AppContent = () => {
+  const { refreshProfile } = useAuth();
+  
+  // Refresh profile on initial app load
+  useEffect(() => {
+    if (refreshProfile) {
+      refreshProfile();
+    }
+  }, [refreshProfile]);
+  
   return (
     <Routes>
       {/* Public routes */}
@@ -244,7 +260,7 @@ const AppContent = () => {
           </OrgRequiredRoute>
         </ProtectedRoute>
       }>
-        <Route index element={<Dashboard />} />
+        <Route index element={<AdminDashboard />} /> {/* Default to admin dashboard */}
         <Route path="admin" element={<AdminDashboard />} />
         <Route path="sales" element={<SalesDashboard />} />
         <Route path="hr" element={<HRDashboard />} />

@@ -1,3 +1,4 @@
+
 import { User, Session } from '@supabase/supabase-js';
 
 export type UserRole = 'org_admin' | 'sales' | 'finance' | 'support' | 'admin' | 'hr' | 'sales_rep' | 'service_advisor' | 'finance_admin' | 'marketing' | 'manager';
@@ -53,9 +54,10 @@ export interface AuthContextType {
   hasRole: (role: UserRole) => boolean;
   isAdmin: () => boolean;
   signIn: (email: string, password: string) => Promise<AuthResponse>;
-  signUp: (email: string, password: string, fullName: string, orgName?: string) => Promise<AuthResponse>;
+  signUp: (email: string, password: string, fullName: string) => Promise<AuthResponse>;
   signOut: () => Promise<void>;
   inviteUser: (email: string, role: UserRole, department?: string) => Promise<{ success: boolean; error?: string }>;
   acceptInvite: (token: string, password: string, fullName: string) => Promise<AuthResponse>;
   transferAdmin: (newAdminId: string) => Promise<{ success: boolean; error?: string }>;
+  refreshProfile?: () => Promise<UserProfile | null>;
 }
