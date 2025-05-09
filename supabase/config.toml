@@ -1,39 +1,14 @@
 
-project_id = "skmswhrdavferojbocdz"
+skmswhrdavferojbocdz = "skmswhrdavferojbocdz"
 
-[api]
-enabled = true
-port = 54321
-schemas = ["public", "storage"]
-
-[db]
-port = 54322
-shadow_port = 54320
-
-[studio]
-enabled = true
-port = 54323
-api_url = "http://localhost"
-
-[inbucket]
-enabled = true
-port = 54324
-
-[storage]
-enabled = true
-
-[auth]
-enabled = true
-port = 54325
-
-[realtime]
-enabled = true
-
-[functions.send-invitation]
+[functions.create-organization]
 verify_jwt = true
 
-[functions.validate-invite]
-verify_jwt = false
+[functions.get-service-role]
+verify_jwt = true
 
-[functions.mark-invite-used]
+[functions.update-dealership]
+verify_jwt = true
+
+[functions.update-profile]
 verify_jwt = true

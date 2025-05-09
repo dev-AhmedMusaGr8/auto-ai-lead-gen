@@ -102,7 +102,8 @@ export const redirectUserBasedOnProfile = (
   if (!currentPath.startsWith(redirectPath) && 
       !safePublicPaths.includes(currentPath) &&
       !(currentPath.includes('/onboarding') && redirectPath.includes('/onboarding')) &&
-      !(currentPath.includes('/role-onboarding') && redirectPath.includes('/role-onboarding'))) {
+      !(currentPath.includes('/role-onboarding') && redirectPath.includes('/role-onboarding')) &&
+      !(currentPath === '/organization/create' && redirectPath === '/onboarding/welcome')) {
     console.log(`Redirecting to ${redirectPath} from ${currentPath}`);
     navigate(redirectPath, { replace: true });
   } else {

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from './AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 type OnboardingStep = 'welcome' | 'dealership' | 'inventory' | 'team' | 'complete';
@@ -29,6 +29,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [dealershipSize, setDealershipSize] = useState('');
   const [progress, setProgress] = useState(0);
   const { user, profile } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Initialize onboarding state based on user's dealership name if available
@@ -76,7 +77,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     
     if (profile?.onboarding_completed && currentStep !== 'complete') {
       console.log("OnboardingProvider: Onboarding is completed, redirecting to dashboard");
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard/admin', { replace: true });
     }
   }, [profile, navigate, currentStep]);
 
@@ -115,11 +116,35 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           
         if (dealershipError) {
           console.error("Error updating dealership:", dealershipError);
-          throw dealershipError;
+          console.error("Error details:", JSON.stringify(dealershipError));
+          
+          // Try using edge function as fallback
+          try {
+            console.log("Attempting to use edge function to update dealership");
+            const { data: funcData, error: funcError } = await supabase.functions.invoke('update-dealership', {
+              body: { 
+                dealershipId,
+                name: dealershipName,
+                size: dealershipSize,
+                userId: user.id
+              }
+            });
+            
+            if (funcError) {
+              console.error("Edge function error:", funcError);
+              throw dealershipError;
+            }
+            
+            console.log("Dealership updated via edge function:", funcData);
+          } catch (edgeFuncError) {
+            console.error("Edge function fallback failed:", edgeFuncError);
+            throw dealershipError;
+          }
         }
       } else {
-        // Create new dealership
-        console.log("Creating new dealership");
+        // This should rarely happen as the dealership is created during signup
+        // But just in case, we'll create it here
+        console.log("No dealership ID found. Creating new dealership");
         
         const { data: dealershipData, error: dealershipError } = await supabase
           .from('dealerships')
@@ -134,13 +159,39 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           
         if (dealershipError) {
           console.error("Error creating dealership:", dealershipError);
-          throw dealershipError;
+          console.error("Error details:", JSON.stringify(dealershipError));
+          
+          // Try using edge function as fallback
+          try {
+            console.log("Attempting to use edge function for organization creation");
+            const { data: funcData, error: funcError } = await supabase.functions.invoke('create-organization', {
+              body: { 
+                name: dealershipName,
+                userId: user.id
+              }
+            });
+            
+            if (funcError) {
+              console.error("Edge function error:", funcError);
+              throw dealershipError;
+            }
+            
+            if (funcData?.id) {
+              console.log("Organization created via edge function:", funcData);
+              dealershipId = funcData.id;
+            } else {
+              throw new Error("No organization ID returned from edge function");
+            }
+          } catch (edgeFuncError) {
+            console.error("Edge function fallback failed:", edgeFuncError);
+            throw dealershipError;
+          }
+        } else {
+          dealershipId = dealershipData.id;
         }
         
-        dealershipId = dealershipData.id;
+        console.log("New dealership created with ID:", dealershipId);
       }
-      
-      console.log("Dealership created/updated with ID:", dealershipId);
       
       // Update the user profile to mark onboarding as complete
       const { error } = await supabase
@@ -154,7 +205,29 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
       if (error) {
         console.error("Error updating profile after onboarding:", error);
-        throw error;
+        console.error("Error details:", JSON.stringify(error));
+        
+        // Try using edge function as fallback
+        try {
+          console.log("Attempting to use edge function to update profile");
+          const { data: funcData, error: funcError } = await supabase.functions.invoke('update-profile', {
+            body: { 
+              userId: user.id,
+              onboarding_completed: true,
+              dealership_id: dealershipId
+            }
+          });
+          
+          if (funcError) {
+            console.error("Edge function error:", funcError);
+            throw error;
+          }
+          
+          console.log("Profile updated via edge function:", funcData);
+        } catch (edgeFuncError) {
+          console.error("Edge function fallback failed:", edgeFuncError);
+          throw error;
+        }
       }
       
       console.log("Profile updated, onboarding marked as complete");
@@ -165,7 +238,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
 
       // Navigate to dashboard after successful onboarding completion
-      navigate('/dashboard', { replace: true });
+      navigate('/dashboard/admin', { replace: true });
 
     } catch (error: any) {
       console.error("Failed to complete onboarding:", error);

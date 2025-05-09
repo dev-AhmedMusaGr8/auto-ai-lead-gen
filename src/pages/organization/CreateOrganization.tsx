@@ -8,11 +8,14 @@ import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { createOrganization } from "@/contexts/auth/profileUtils";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const CreateOrganization = () => {
   const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { user, profile } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const { user, profile, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -34,8 +37,20 @@ const CreateOrganization = () => {
     }
   }, [profile, navigate]);
 
+  // Reset error message when organization name changes
+  useEffect(() => {
+    if (error && orgName) {
+      setError(null);
+    }
+  }, [orgName, error]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!orgName.trim()) {
+      setError("Organization name cannot be empty");
+      return;
+    }
     
     if (!user) {
       toast({
@@ -47,6 +62,7 @@ const CreateOrganization = () => {
     }
     
     setLoading(true);
+    setError(null);
     
     try {
       console.log(`Creating organization ${orgName} for user ${user.id}`);
@@ -59,13 +75,22 @@ const CreateOrganization = () => {
           description: `Your organization "${orgName}" has been created successfully.`
         });
         
-        // Go to onboarding since this is a new org
-        navigate('/onboarding/welcome', { replace: true });
+        // Force a reload of the auth context to get updated profile
+        if (session) {
+          // Wait a bit for the database to update
+          setTimeout(() => {
+            // Go to onboarding since this is a new org
+            navigate('/onboarding/welcome', { replace: true });
+          }, 500);
+        } else {
+          navigate('/signin', { replace: true });
+        }
       } else {
         throw new Error("Failed to create organization");
       }
     } catch (error: any) {
       console.error("Error creating organization:", error);
+      setError(error.message || "An unexpected error occurred while creating your organization");
       toast({
         title: "Error creating organization",
         description: error.message || "An unexpected error occurred",
@@ -100,6 +125,19 @@ const CreateOrganization = () => {
           </p>
         </div>
 
+        {error && (
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Alert variant="destructive">
+              <AlertTitle>Error creating organization</AlertTitle>
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
+
         <motion.div 
           className="bg-white rounded-lg shadow-lg px-8 py-10"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -118,6 +156,7 @@ const CreateOrganization = () => {
                 value={orgName}
                 onChange={(e) => setOrgName(e.target.value)}
                 placeholder="Your Dealership Name"
+                disabled={loading}
               />
             </div>
             <div>
@@ -126,7 +165,14 @@ const CreateOrganization = () => {
                 className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
                 disabled={loading}
               >
-                {loading ? "Creating..." : "Create Organization"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    Creating...
+                  </>
+                ) : (
+                  "Create Organization"
+                )}
               </Button>
             </div>
           </form>

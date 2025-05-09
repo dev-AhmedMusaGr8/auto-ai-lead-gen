@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         // Fetch user profile on auth changes that matter
         if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION', 'SIGNED_UP'].includes(event)) {
+          console.log(`Fetching user profile after ${event} event`);
           const userProfile = await fetchUserProfile(session.user.id);
           console.log("User profile after fetch:", userProfile);
           
@@ -46,22 +47,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           // Fetch organization details if available
           if (userProfile?.org_id) {
+            console.log("Fetching organization using org_id:", userProfile.org_id);
             const org = await fetchOrganization(userProfile.org_id);
             setOrganization(org);
           } else if (userProfile?.dealership_id) {
             // Fallback to dealership_id for backward compatibility
+            console.log("Fetching organization using dealership_id:", userProfile.dealership_id);
             const org = await fetchOrganization(userProfile.dealership_id);
             setOrganization(org);
           }
           
-          // Redirect on sign in or sign up events
+          // Redirect on sign in or sign up events - with improved logging
           if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
-            console.log("Redirecting after sign in/up event", event, userProfile);
+            console.log("Redirecting after sign in/up event", event);
+            console.log("User profile for redirect:", userProfile);
             console.log("Current path:", location.pathname);
             
-            // Don't immediately redirect during signup - let the signup handler handle it
+            // Don't immediately redirect during signup if we're on the signin page
+            // Let the signup handler in SignIn.tsx handle organization creation first
             if (event !== 'SIGNED_UP' || location.pathname !== '/signin') {
-              redirectUserBasedOnProfile(userProfile, true, navigate, location.pathname);
+              setTimeout(() => {
+                redirectUserBasedOnProfile(userProfile, true, navigate, location.pathname);
+              }, 500); // Small delay to ensure DB updates are complete
             }
           }
         }
@@ -159,17 +166,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log("Signup successful. User:", data.user?.id, "Session:", data.session ? "exists" : "none");
       
-      if (data.session && data.user && orgName) {
-        // Create organization for the new user
-        console.log("Creating organization during signup");
-        const orgId = await createOrganization(orgName, data.user.id);
-        
-        if (orgId) {
-          console.log(`Organization ${orgId} created successfully`);
-        } else {
-          console.warn("Failed to create organization during signup");
-        }
-      }
+      // We'll handle organization creation in the SignIn component after signup
+      // This ensures we have proper control over the flow including error handling
       
       // Only show success message if there's no session (email confirmation required)
       if (!data.session) {

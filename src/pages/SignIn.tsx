@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { redirectUserBasedOnProfile } from "@/contexts/auth/routingUtils";
 import { createOrganization } from "@/contexts/auth/profileUtils";
+import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,6 +19,7 @@ const SignIn = () => {
   const [name, setName] = useState("");
   const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { signIn, signUp, user, profile, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -56,9 +59,17 @@ const SignIn = () => {
     }
   }, [user, profile, navigate]);
 
+  // Reset error when form changes
+  useEffect(() => {
+    if (errorMessage) {
+      setErrorMessage(null);
+    }
+  }, [email, password, name, orgName, isLogin]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
     
     try {
       if (isLogin) {
@@ -66,6 +77,7 @@ const SignIn = () => {
         const result = await signIn(email, password);
         if (result && result.error) {
           console.error("Sign in failed with error:", result.error);
+          setErrorMessage(result.error.message || "Invalid email or password");
           toast({
             title: "Sign in failed",
             description: result.error.message || "Invalid email or password",
@@ -75,7 +87,8 @@ const SignIn = () => {
           console.log("Sign in successful", result);
         }
       } else {
-        if (!orgName) {
+        if (!orgName.trim()) {
+          setErrorMessage("Organization name is required");
           toast({
             title: "Organization name required",
             description: "Please enter your organization name to sign up.",
@@ -86,7 +99,7 @@ const SignIn = () => {
         }
         
         console.log("Attempting to sign up with:", email, name, orgName);
-        const result = await signUp(email, password, name, orgName);
+        const result = await signUp(email, password, name);
         
         if (result && !result.error) {
           if (!result.session) {
@@ -99,7 +112,8 @@ const SignIn = () => {
             console.log("Sign up successful with session, user ID:", result.user?.id);
             
             if (result.user) {
-              // Create organization for the new user if it wasn't created during signUp
+              // Create organization for the new user since it wasn't created during signUp
+              console.log("Creating organization for new user");
               const orgId = await createOrganization(orgName, result.user.id);
               
               if (orgId) {
@@ -108,14 +122,18 @@ const SignIn = () => {
                   description: "Your account and organization have been set up successfully.",
                 });
                 
-                // Redirect to onboarding after a short delay to allow profile to update
+                // Wait for a short delay to ensure all database operations complete
                 setTimeout(() => {
                   navigate('/onboarding/welcome', { replace: true });
                 }, 1000);
+              } else {
+                setErrorMessage("Failed to create organization. You can try again after signing in.");
+                console.error("Failed to create organization during signup");
               }
             }
           }
         } else if (result && result.error) {
+          setErrorMessage(result.error.message || "Failed to create account");
           toast({
             title: "Sign up failed",
             description: result.error.message || "Failed to create account",
@@ -125,6 +143,7 @@ const SignIn = () => {
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
+      setErrorMessage(error.message || "An unexpected error occurred");
       toast({
         title: "Authentication Error",
         description: error.message || "An unexpected error occurred",
@@ -164,6 +183,19 @@ const SignIn = () => {
             </button>
           </p>
         </div>
+        
+        {errorMessage && (
+          <motion.div 
+            className="mb-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Alert variant="destructive">
+              <AlertTitle>{isLogin ? "Sign in error" : "Sign up error"}</AlertTitle>
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          </motion.div>
+        )}
 
         <motion.div 
           className="bg-white rounded-lg shadow-lg px-8 py-10"
@@ -184,6 +216,7 @@ const SignIn = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your full name"
+                  disabled={loading}
                 />
               </div>
             )}
@@ -198,6 +231,7 @@ const SignIn = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your.name@example.com"
+                disabled={loading}
               />
             </div>
             <div>
@@ -210,6 +244,7 @@ const SignIn = () => {
                 className="mt-1"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
             </div>
             {!isLogin && (
@@ -223,7 +258,8 @@ const SignIn = () => {
                   className="mt-1"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
-                  placeholder="Your organization name"
+                  placeholder="Your dealership name"
+                  disabled={loading}
                 />
               </div>
             )}
@@ -233,7 +269,14 @@ const SignIn = () => {
                 className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white"
                 disabled={loading}
               >
-                {loading ? "Processing..." : isLogin ? "Sign in" : "Create Account"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isLogin ? "Signing in..." : "Creating account..."}
+                  </>
+                ) : (
+                  isLogin ? "Sign in" : "Create Account"
+                )}
               </Button>
             </div>
           </form>

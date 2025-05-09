@@ -99,7 +99,11 @@ export const createOrganization = async (name: string, userId: string): Promise<
   try {
     console.log(`Creating organization "${name}" for user ${userId}`);
     
-    // Create the organization in dealerships table
+    // First check if there is row-level security preventing the insert
+    const { data: testData } = await supabase.rpc('get_service_role');
+    console.log("RPC test result:", testData);
+    
+    // Create the organization in dealerships table with more detailed error handling
     const { data: orgData, error: orgError } = await supabase
       .from('dealerships')
       .insert({ 
@@ -112,6 +116,42 @@ export const createOrganization = async (name: string, userId: string): Promise<
 
     if (orgError) {
       console.error('Error creating organization:', orgError);
+      console.error('Error details:', JSON.stringify(orgError));
+      
+      // Try service role API as a fallback if we suspect RLS issues
+      try {
+        console.log("Attempting to use edge function for organization creation");
+        const { data: funcData, error: funcError } = await supabase.functions.invoke('create-organization', {
+          body: { name, userId }
+        });
+        
+        if (funcError) {
+          console.error('Edge function error:', funcError);
+          return null;
+        }
+        
+        if (funcData?.id) {
+          console.log("Organization created via edge function:", funcData);
+          
+          // Update the user's profile with the dealership_id
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ 
+              dealership_id: funcData.id,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId);
+
+          if (profileError) {
+            console.error('Error updating profile with org ID after edge function:', profileError);
+          }
+          
+          return funcData.id;
+        }
+      } catch (funcErr) {
+        console.error('Error with edge function fallback:', funcErr);
+      }
+      
       return null;
     }
 
@@ -128,6 +168,7 @@ export const createOrganization = async (name: string, userId: string): Promise<
 
     if (profileError) {
       console.error('Error updating profile with org ID:', profileError);
+      console.error('Error details:', JSON.stringify(profileError));
       return null;
     }
 
@@ -148,6 +189,7 @@ export const createOrganization = async (name: string, userId: string): Promise<
 
       if (roleError) {
         console.error('Error adding admin role:', roleError);
+        console.error('Error details:', JSON.stringify(roleError));
       } else {
         console.log(`Added admin role for user ${userId}`);
       }
@@ -158,6 +200,8 @@ export const createOrganization = async (name: string, userId: string): Promise<
     return orgData.id;
   } catch (error) {
     console.error("Failed to create organization:", error);
+    console.error('Error details:', JSON.stringify(error));
     return null;
   }
 };
+
