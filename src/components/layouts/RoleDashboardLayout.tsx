@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Outlet, useNavigate, Link } from 'react-router-dom';
+import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from '@/components/ui/sidebar';
 import { 
@@ -32,7 +32,7 @@ const formatRole = (role: string): string => {
 const getRoleNavItems = (role: string) => {
   const navItems = {
     admin: [
-      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard' },
+      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard/admin' },
       { label: 'Contacts', icon: Users, href: '/contacts' },
       { label: 'Companies', icon: Briefcase, href: '/companies' },
       { label: 'Deals', icon: ShoppingCart, href: '/deals' },
@@ -43,7 +43,7 @@ const getRoleNavItems = (role: string) => {
       { label: 'Settings', icon: Settings, href: '/settings' },
     ],
     sales_rep: [
-      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard' },
+      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard/sales' },
       { label: 'Contacts', icon: Users, href: '/contacts' },
       { label: 'Deals', icon: ShoppingCart, href: '/deals' },
       { label: 'Inventory', icon: Car, href: '/inventory' },
@@ -51,25 +51,25 @@ const getRoleNavItems = (role: string) => {
       { label: 'Messages', icon: MessageSquare, href: '/messages' },
     ],
     service_advisor: [
-      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard' },
+      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard/service' },
       { label: 'Service Appointments', icon: Calendar, href: '/service' },
       { label: 'Contacts', icon: Users, href: '/contacts' },
       { label: 'Messages', icon: MessageSquare, href: '/messages' },
     ],
     finance_admin: [
-      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard' },
+      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard/finance' },
       { label: 'Deals', icon: ShoppingCart, href: '/deals' },
       { label: 'Documents', icon: FileText, href: '/documents' },
       { label: 'Calendar', icon: Calendar, href: '/calendar' },
     ],
     marketing: [
-      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard' },
+      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard/marketing' },
       { label: 'Campaigns', icon: Bell, href: '/campaigns' },
       { label: 'Contacts', icon: Users, href: '/contacts' },
       { label: 'Companies', icon: Briefcase, href: '/companies' },
     ],
     manager: [
-      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard' },
+      { label: 'Dashboard', icon: BarChartHorizontal, href: '/dashboard/admin' },
       { label: 'Contacts', icon: Users, href: '/contacts' },
       { label: 'Deals', icon: ShoppingCart, href: '/deals' },
       { label: 'Inventory', icon: Car, href: '/inventory' },
@@ -84,7 +84,11 @@ const getRoleNavItems = (role: string) => {
 const RoleDashboardLayout = () => {
   const { profile, isLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const role = profile?.roles?.[0] || 'admin';
+  
+  console.log("RoleDashboardLayout: Current location", location.pathname);
+  console.log("RoleDashboardLayout: Current user profile", profile);
   
   useEffect(() => {
     if (!isLoading && !profile) {
@@ -131,7 +135,9 @@ const RoleDashboardLayout = () => {
                 <Link 
                   key={index}
                   to={item.href}
-                  className="flex items-center px-3 py-2 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors"
+                  className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    location.pathname === item.href ? 'bg-gray-200' : 'hover:bg-gray-200'
+                  }`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
                   {item.label}

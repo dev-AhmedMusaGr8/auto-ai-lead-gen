@@ -31,8 +31,8 @@ export const determineRedirectPath = (profile: UserProfile | null, isNewSession:
       console.log("Non-admin needs role onboarding");
       // Determine which role-specific onboarding to show
       const roleRoutes: Record<UserRole, string> = {
-        'org_admin': '/dashboard/admin',
-        'admin': '/dashboard/admin',
+        'org_admin': '/role-onboarding/admin',
+        'admin': '/role-onboarding/admin',
         'sales': '/role-onboarding/sales',
         'hr': '/role-onboarding/hr',
         'finance': '/role-onboarding/finance',
@@ -41,7 +41,7 @@ export const determineRedirectPath = (profile: UserProfile | null, isNewSession:
         'service_advisor': '/role-onboarding/service',
         'finance_admin': '/role-onboarding/finance',
         'marketing': '/role-onboarding/marketing',
-        'manager': '/dashboard/admin'
+        'manager': '/role-onboarding/admin'
       };
       
       const redirectPath = roleRoutes[profile.roles?.[0] || 'admin'] || '/dashboard';

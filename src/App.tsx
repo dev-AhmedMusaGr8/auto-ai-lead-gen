@@ -69,7 +69,7 @@ const OrgRequiredRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/signin" replace />;
   }
   
-  if (!profile.org_id) {
+  if (!profile.org_id && !profile.dealership_id) {
     return <Navigate to="/organization/create" replace />;
   }
   
@@ -95,7 +95,11 @@ const AdminOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
         'sales': '/role-onboarding/sales',
         'hr': '/role-onboarding/hr',
         'finance': '/role-onboarding/finance',
-        'support': '/role-onboarding/support'
+        'support': '/role-onboarding/support',
+        'sales_rep': '/role-onboarding/sales',
+        'service_advisor': '/role-onboarding/service',
+        'finance_admin': '/role-onboarding/finance',
+        'marketing': '/role-onboarding/marketing',
       };
       return <Navigate to={roleRoutes[profile.roles?.[0] || ''] || '/dashboard'} replace />;
     }
@@ -148,7 +152,7 @@ const DashboardRoute = ({ children, adminOnly = false }: { children: React.React
   }
 
   // Check for organization
-  if (!profile.org_id) {
+  if (!profile.org_id && !profile.dealership_id) {
     return <Navigate to="/organization/create" replace />;
   }
   
@@ -163,7 +167,11 @@ const DashboardRoute = ({ children, adminOnly = false }: { children: React.React
       'sales': '/role-onboarding/sales',
       'hr': '/role-onboarding/hr',
       'finance': '/role-onboarding/finance',
-      'support': '/role-onboarding/support'
+      'support': '/role-onboarding/support',
+      'sales_rep': '/role-onboarding/sales',
+      'service_advisor': '/role-onboarding/service',
+      'finance_admin': '/role-onboarding/finance',
+      'marketing': '/role-onboarding/marketing',
     };
     return <Navigate to={roleRoutes[profile.roles?.[0] || ''] || '/dashboard'} replace />;
   }
@@ -237,11 +245,7 @@ const AppContent = () => {
         </ProtectedRoute>
       }>
         <Route index element={<Dashboard />} />
-        <Route path="admin" element={
-          <DashboardRoute adminOnly={true}>
-            <AdminDashboard />
-          </DashboardRoute>
-        } />
+        <Route path="admin" element={<AdminDashboard />} />
         <Route path="sales" element={<SalesDashboard />} />
         <Route path="hr" element={<HRDashboard />} />
         <Route path="finance" element={<FinanceDashboard />} />

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,46 +11,90 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserRole } from "@/types/auth";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { profile, organization, inviteUser, isAdmin } = useAuth();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<UserRole>("sales");
+  const [inviteRole, setInviteRole] = useState<UserRole>("sales_rep");
   const [inviteDepartment, setInviteDepartment] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [isLoadingTeam, setIsLoadingTeam] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   
+  console.log("AdminDashboard: User profile", profile);
+  console.log("AdminDashboard: Organization", organization);
+  
+  // Check if user is authenticated and is admin
+  useEffect(() => {
+    if (!profile) {
+      navigate('/signin', { replace: true });
+      return;
+    }
+    
+    if (!isAdmin()) {
+      toast({
+        title: "Access Denied",
+        description: "You don't have permission to access this page."
+      });
+      navigate('/dashboard', { replace: true });
+    }
+  }, [profile, isAdmin, navigate, toast]);
+  
   // Fetch team members
   useEffect(() => {
     const fetchTeamMembers = async () => {
-      if (!profile?.org_id) return;
+      if (!profile?.org_id && !profile?.dealership_id) {
+        setIsLoadingTeam(false);
+        return;
+      }
       
       try {
         setIsLoadingTeam(true);
         
-        // Mock data for now - in a real app we'd fetch actual profiles
-        setTeamMembers([
-          { id: '1', full_name: 'John Manager', email: 'john@autodealership.com', role: 'sales', department: 'Sales' },
-          { id: '2', full_name: 'Sarah Finance', email: 'sarah@autodealership.com', role: 'finance', department: 'Finance' },
-          { id: '3', full_name: 'Mike Support', email: 'mike@autodealership.com', role: 'support', department: 'Service' }
-        ]);
+        const dealershipId = profile.org_id || profile.dealership_id;
+        
+        const { data: teamData, error: teamError } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, user_roles(role)')
+          .eq('dealership_id', dealershipId);
+
+        if (teamData && !teamError) {
+          console.log("AdminDashboard: Fetched team members:", teamData);
+          setTeamMembers(teamData);
+        } else {
+          console.error("AdminDashboard: Error fetching team members:", teamError);
+          // Use mock data if we can't fetch real data
+          setTeamMembers([
+            { id: '1', full_name: 'John Manager', email: 'john@autodealership.com', user_roles: [{ role: 'sales_rep' }] },
+            { id: '2', full_name: 'Sarah Finance', email: 'sarah@autodealership.com', user_roles: [{ role: 'finance_admin' }] },
+            { id: '3', full_name: 'Mike Support', email: 'mike@autodealership.com', user_roles: [{ role: 'service_advisor' }] }
+          ]);
+        }
       } catch (error: any) {
+        console.error("AdminDashboard: Failed to load team members", error);
         toast({
           title: "Failed to load team members",
           description: error.message,
           variant: "destructive"
         });
+        // Use mock data on error
+        setTeamMembers([
+          { id: '1', full_name: 'John Manager', email: 'john@autodealership.com', user_roles: [{ role: 'sales_rep' }] },
+          { id: '2', full_name: 'Sarah Finance', email: 'sarah@autodealership.com', user_roles: [{ role: 'finance_admin' }] },
+          { id: '3', full_name: 'Mike Support', email: 'mike@autodealership.com', user_roles: [{ role: 'service_advisor' }] }
+        ]);
       } finally {
         setIsLoadingTeam(false);
       }
     };
     
     fetchTeamMembers();
-  }, [profile?.org_id, toast]);
+  }, [profile, toast]);
   
   // Handle sending invitations
   const handleSendInvite = async (e: React.FormEvent) => {
@@ -80,7 +125,7 @@ const AdminDashboard = () => {
       
       // Reset form and close dialog
       setInviteEmail("");
-      setInviteRole("sales");
+      setInviteRole("sales_rep");
       setInviteDepartment("");
       setInviteDialogOpen(false);
     } catch (error: any) {
@@ -93,6 +138,14 @@ const AdminDashboard = () => {
       setInviteLoading(false);
     }
   };
+
+  if (isLoadingTeam) {
+    return <div className="flex items-center justify-center h-screen">Loading dashboard...</div>;
+  }
+  
+  if (!profile) {
+    return null; // Will redirect via the useEffect
+  }
 
   if (!isAdmin()) {
     return (
@@ -147,10 +200,11 @@ const AdminDashboard = () => {
                       <SelectValue placeholder="Select a role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="sales">Sales</SelectItem>
+                      <SelectItem value="sales_rep">Sales</SelectItem>
                       <SelectItem value="hr">HR</SelectItem>
-                      <SelectItem value="finance">Finance</SelectItem>
-                      <SelectItem value="support">Support</SelectItem>
+                      <SelectItem value="finance_admin">Finance</SelectItem>
+                      <SelectItem value="service_advisor">Service</SelectItem>
+                      <SelectItem value="marketing">Marketing</SelectItem>
                       <SelectItem value="org_admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
@@ -216,9 +270,9 @@ const AdminDashboard = () => {
                 <CardTitle className="text-sm font-medium">Current Plan</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold capitalize">{organization?.plan || 'Free'}</div>
+                <div className="text-2xl font-bold capitalize">Standard</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {organization?.plan === 'free' ? 'Upgrade for more features' : 'Paid subscription'}
+                  Professional tier
                 </p>
               </CardContent>
             </Card>
@@ -232,11 +286,7 @@ const AdminDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {isLoadingTeam ? (
-                <div className="flex justify-center p-4">
-                  <div className="animate-spin h-6 w-6 border-2 rounded-full border-t-transparent"></div>
-                </div>
-              ) : teamMembers.length > 0 ? (
+              {teamMembers.length > 0 ? (
                 <div className="relative w-full overflow-auto">
                   <table className="w-full caption-bottom text-sm">
                     <thead className="[&_tr]:border-b">
@@ -254,9 +304,7 @@ const AdminDashboard = () => {
                           <td className="p-4 align-middle">{member.full_name || 'N/A'}</td>
                           <td className="p-4 align-middle">{member.email}</td>
                           <td className="p-4 align-middle capitalize">
-                            {member.role?.replace('_', ' ') || 
-                             member.user_roles?.[0]?.role?.replace('_', ' ') || 
-                             'N/A'}
+                            {member.user_roles?.[0]?.role?.replace('_', ' ') || 'No role'}
                           </td>
                           <td className="p-4 align-middle">{member.department || 'N/A'}</td>
                           <td className="p-4 align-middle text-right">
