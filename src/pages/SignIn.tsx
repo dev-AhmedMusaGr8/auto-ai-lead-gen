@@ -7,7 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { supabase } from "@/integrations/supabase/client";
+import { redirectUserBasedOnProfile } from "@/contexts/auth/routingUtils";
+import { createOrganization } from "@/contexts/auth/profileUtils";
 
 const SignIn = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +17,7 @@ const SignIn = () => {
   const [name, setName] = useState("");
   const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn, signUp, user, profile } = useAuth();
+  const { signIn, signUp, user, profile, session } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -41,44 +42,17 @@ const SignIn = () => {
   // Redirect if user is already authenticated
   useEffect(() => {
     if (user && profile) {
-      // If no organization, redirect to org creation
-      if (!profile.org_id) {
+      console.log("User is authenticated. Profile:", profile);
+      
+      // Check if organization exists
+      if (!profile.org_id && !profile.dealership_id) {
+        console.log("No organization found, redirecting to org creation");
         navigate('/organization/create', { replace: true });
         return;
       }
       
-      // Determine where to redirect based on profile
-      if (profile.is_admin) {
-        // If admin onboarding is not completed, go to onboarding
-        if (!profile.onboarding_completed) {
-          console.log("Admin redirecting to onboarding");
-          navigate('/onboarding/welcome', { replace: true });
-        } else {
-          navigate('/dashboard/admin', { replace: true });
-        }
-      } else {
-        // For non-admin users, check role-specific onboarding
-        if (!profile.role_onboarding_completed) {
-          console.log("Non-admin redirecting to role onboarding");
-          // Determine role-specific onboarding route
-          const roleRoutes: Record<string, string> = {
-            'sales': '/role-onboarding/sales',
-            'hr': '/role-onboarding/hr',
-            'finance': '/role-onboarding/finance',
-            'support': '/role-onboarding/support'
-          };
-          navigate(roleRoutes[profile.roles?.[0] || ''] || '/dashboard', { replace: true });
-        } else {
-          // Determine role-specific dashboard
-          const roleDashboards: Record<string, string> = {
-            'sales': '/dashboard/sales',
-            'hr': '/dashboard/hr',
-            'finance': '/dashboard/finance',
-            'support': '/dashboard/support'
-          };
-          navigate(roleDashboards[profile.roles?.[0] || ''] || '/dashboard', { replace: true });
-        }
-      }
+      // Determine redirection based on profile
+      redirectUserBasedOnProfile(profile, true, navigate, window.location.pathname);
     }
   }, [user, profile, navigate]);
 
@@ -97,9 +71,11 @@ const SignIn = () => {
             description: result.error.message || "Invalid email or password",
             variant: "destructive"
           });
+        } else {
+          console.log("Sign in successful", result);
         }
       } else {
-        if (!isLogin && !orgName) {
+        if (!orgName) {
           toast({
             title: "Organization name required",
             description: "Please enter your organization name to sign up.",
@@ -109,7 +85,9 @@ const SignIn = () => {
           return;
         }
         
+        console.log("Attempting to sign up with:", email, name, orgName);
         const result = await signUp(email, password, name, orgName);
+        
         if (result && !result.error) {
           if (!result.session) {
             toast({
@@ -117,7 +95,32 @@ const SignIn = () => {
               description: "Please check your email to verify your account. Once verified, you can set up your organization.",
             });
             setIsLogin(true);
+          } else {
+            console.log("Sign up successful with session, user ID:", result.user?.id);
+            
+            if (result.user) {
+              // Create organization for the new user if it wasn't created during signUp
+              const orgId = await createOrganization(orgName, result.user.id);
+              
+              if (orgId) {
+                toast({
+                  title: "Organization Created",
+                  description: "Your account and organization have been set up successfully.",
+                });
+                
+                // Redirect to onboarding after a short delay to allow profile to update
+                setTimeout(() => {
+                  navigate('/onboarding/welcome', { replace: true });
+                }, 1000);
+              }
+            }
           }
+        } else if (result && result.error) {
+          toast({
+            title: "Sign up failed",
+            description: result.error.message || "Failed to create account",
+            variant: "destructive"
+          });
         }
       }
     } catch (error: any) {

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,11 +16,23 @@ const CreateOrganization = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Redirect if user already has an organization
-  if (profile?.org_id) {
-    navigate('/dashboard');
-    return null;
-  }
+  // Check if user already has an organization and redirect accordingly
+  useEffect(() => {
+    if (profile) {
+      if (profile.org_id || profile.dealership_id) {
+        console.log("User already has an organization, redirecting");
+        
+        // If admin onboarding is not completed, redirect to onboarding
+        if (profile.is_admin && !profile.onboarding_completed) {
+          navigate('/onboarding/welcome', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
+      } else {
+        console.log("User has no organization, staying on create page");
+      }
+    }
+  }, [profile, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,18 +49,23 @@ const CreateOrganization = () => {
     setLoading(true);
     
     try {
+      console.log(`Creating organization ${orgName} for user ${user.id}`);
       const orgId = await createOrganization(orgName, user.id);
       
       if (orgId) {
+        console.log(`Organization created with ID ${orgId}`);
         toast({
           title: "Organization created",
           description: `Your organization "${orgName}" has been created successfully.`
         });
-        navigate('/dashboard');
+        
+        // Go to onboarding since this is a new org
+        navigate('/onboarding/welcome', { replace: true });
       } else {
         throw new Error("Failed to create organization");
       }
     } catch (error: any) {
+      console.error("Error creating organization:", error);
       toast({
         title: "Error creating organization",
         description: error.message || "An unexpected error occurred",

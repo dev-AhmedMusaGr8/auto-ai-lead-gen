@@ -33,21 +33,33 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Initialize onboarding state based on user's dealership name if available
   useEffect(() => {
-    if (profile?.dealership_id) {
+    console.log("OnboardingProvider: Checking profile and dealership_id", profile);
+    
+    if (!profile) return;
+    
+    const dealershipId = profile.dealership_id || profile.org_id;
+    if (dealershipId) {
+      console.log("OnboardingProvider: Fetching dealership info for", dealershipId);
+      
       const fetchDealershipInfo = async () => {
         const { data, error } = await supabase
           .from('dealerships')
           .select('name, size')
-          .eq('id', profile.dealership_id)
+          .eq('id', dealershipId)
           .single();
           
         if (data && !error) {
+          console.log("OnboardingProvider: Dealership data found", data);
           setDealershipName(data.name || '');
           setDealershipSize(data.size || '');
+        } else {
+          console.error("OnboardingProvider: Error fetching dealership", error);
         }
       };
       
       fetchDealershipInfo();
+    } else {
+      console.log("OnboardingProvider: No dealership_id found");
     }
   }, [profile]);
 
@@ -60,7 +72,10 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   // Check if onboarding is completed and redirect if necessary
   useEffect(() => {
+    console.log("OnboardingProvider: Checking if onboarding is completed", profile?.onboarding_completed);
+    
     if (profile?.onboarding_completed && currentStep !== 'complete') {
+      console.log("OnboardingProvider: Onboarding is completed, redirecting to dashboard");
       navigate('/dashboard', { replace: true });
     }
   }, [profile, navigate, currentStep]);
@@ -83,10 +98,12 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       console.log("Starting onboarding completion process");
       
       // First create or update the dealership
-      let dealershipId;
+      let dealershipId = profile?.dealership_id || profile?.org_id;
       
-      if (profile?.dealership_id) {
+      if (dealershipId) {
         // Update existing dealership
+        console.log(`Updating existing dealership ${dealershipId}`);
+        
         const { error: dealershipError } = await supabase
           .from('dealerships')
           .update({ 
@@ -94,12 +111,16 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             size: dealershipSize,
             updated_at: new Date().toISOString()
           })
-          .eq('id', profile.dealership_id);
+          .eq('id', dealershipId);
           
-        if (dealershipError) throw dealershipError;
-        dealershipId = profile.dealership_id;
+        if (dealershipError) {
+          console.error("Error updating dealership:", dealershipError);
+          throw dealershipError;
+        }
       } else {
         // Create new dealership
+        console.log("Creating new dealership");
+        
         const { data: dealershipData, error: dealershipError } = await supabase
           .from('dealerships')
           .insert({ 
@@ -108,10 +129,14 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .select('id')
+          .select()
           .single();
           
-        if (dealershipError) throw dealershipError;
+        if (dealershipError) {
+          console.error("Error creating dealership:", dealershipError);
+          throw dealershipError;
+        }
+        
         dealershipId = dealershipData.id;
       }
       
@@ -128,6 +153,7 @@ export const OnboardingProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         .eq('id', user.id);
 
       if (error) {
+        console.error("Error updating profile after onboarding:", error);
         throw error;
       }
       

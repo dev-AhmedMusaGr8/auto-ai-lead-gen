@@ -7,7 +7,7 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
     console.log("Fetching profile for user:", userId);
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('*, user_roles(role)')
+      .select('*')
       .eq('id', userId)
       .single();
 
@@ -15,6 +15,8 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
       console.error('Error fetching profile:', profileError);
       return null;
     }
+
+    console.log("Raw profile data:", profileData);
 
     // Get user roles from user_roles table
     const { data: userRoles, error: rolesError } = await supabase
@@ -26,6 +28,11 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
       console.error('Error fetching user roles:', rolesError);
     }
 
+    console.log("User roles data:", userRoles);
+
+    const roles = userRoles ? userRoles.map((r: any) => r.role as UserRole) : [];
+    const isAdmin = roles.includes('admin') || roles.includes('org_admin');
+
     // Map the profile data to our UserProfile interface
     const userProfile: UserProfile = {
       id: profileData.id,
@@ -35,18 +42,15 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
       dealership_id: profileData.dealership_id,
       org_id: profileData.dealership_id, // Use dealership_id as org_id for compatibility
       department: null, // Default to null as it's not in the actual table
-      is_admin: false, // Default to false, we'll update based on roles
+      is_admin: isAdmin, // Set based on roles
       onboarding_completed: profileData.onboarding_completed,
       role_onboarding_completed: profileData.role_onboarding_completed,
       created_at: profileData.created_at,
       updated_at: profileData.updated_at,
-      roles: userRoles ? userRoles.map((r: any) => r.role as UserRole) : ['admin'] // Default to admin if no roles
+      roles: roles
     };
     
-    // Set is_admin based on roles
-    userProfile.is_admin = userProfile.roles.includes('admin');
-
-    console.log("Fetched user profile:", userProfile);
+    console.log("Processed user profile:", userProfile);
     return userProfile;
   } catch (error) {
     console.error("Failed to fetch user profile:", error);
@@ -57,6 +61,11 @@ export const fetchUserProfile = async (userId: string): Promise<UserProfile | nu
 export const fetchOrganization = async (orgId: string): Promise<Organization | null> => {
   try {
     console.log("Fetching organization:", orgId);
+    
+    if (!orgId) {
+      console.log("No organization ID provided");
+      return null;
+    }
     
     const { data, error } = await supabase
       .from('dealerships')
@@ -69,10 +78,13 @@ export const fetchOrganization = async (orgId: string): Promise<Organization | n
       return null;
     }
 
+    console.log("Organization data:", data);
+
     // Map to Organization format
     return {
       id: data.id,
       name: data.name,
+      plan: data.plan || undefined,
       created_at: data.created_at,
       updated_at: data.updated_at
     };
@@ -85,11 +97,17 @@ export const fetchOrganization = async (orgId: string): Promise<Organization | n
 // Function to create a new organization during signup
 export const createOrganization = async (name: string, userId: string): Promise<string | null> => {
   try {
+    console.log(`Creating organization "${name}" for user ${userId}`);
+    
     // Create the organization in dealerships table
     const { data: orgData, error: orgError } = await supabase
       .from('dealerships')
-      .insert({ name })
-      .select('id')
+      .insert({ 
+        name,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
       .single();
 
     if (orgError) {
@@ -97,10 +115,15 @@ export const createOrganization = async (name: string, userId: string): Promise<
       return null;
     }
 
+    console.log("Organization created:", orgData);
+
     // Update the user's profile with the dealership_id
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({ dealership_id: orgData.id })
+      .update({ 
+        dealership_id: orgData.id,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', userId);
 
     if (profileError) {
@@ -108,13 +131,28 @@ export const createOrganization = async (name: string, userId: string): Promise<
       return null;
     }
 
-    // Add admin role to user_roles table
-    const { error: roleError } = await supabase
-      .from('user_roles')
-      .insert({ user_id: userId, role: 'admin' });
+    console.log(`Updated profile for user ${userId} with dealership_id ${orgData.id}`);
 
-    if (roleError) {
-      console.error('Error adding admin role:', roleError);
+    // Check if user already has the admin role
+    const { data: existingRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .eq('role', 'admin');
+
+    // Add admin role to user_roles table if not exists
+    if (!existingRole || existingRole.length === 0) {
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role: 'admin' });
+
+      if (roleError) {
+        console.error('Error adding admin role:', roleError);
+      } else {
+        console.log(`Added admin role for user ${userId}`);
+      }
+    } else {
+      console.log(`User ${userId} already has admin role`);
     }
 
     return orgData.id;

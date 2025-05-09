@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Handle auth state changes
   const handleAuthChange = async (event: string, session: Session | null) => {
-    console.log("Auth state changed:", event, session?.user?.id);
+    console.log("Auth state changed:", event, "User ID:", session?.user?.id, "Path:", location.pathname);
     
     try {
       if (session?.user) {
@@ -40,6 +40,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Fetch user profile on auth changes that matter
         if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION', 'SIGNED_UP'].includes(event)) {
           const userProfile = await fetchUserProfile(session.user.id);
+          console.log("User profile after fetch:", userProfile);
+          
           setProfile(userProfile);
           
           // Fetch organization details if available
@@ -55,8 +57,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Redirect on sign in or sign up events
           if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
             console.log("Redirecting after sign in/up event", event, userProfile);
-            // Don't redirect away from the index page (home page) unless it's a sign up
-            if (location.pathname !== '/' || event === 'SIGNED_UP') {
+            console.log("Current path:", location.pathname);
+            
+            // Don't immediately redirect during signup - let the signup handler handle it
+            if (event !== 'SIGNED_UP' || location.pathname !== '/signin') {
               redirectUserBasedOnProfile(userProfile, true, navigate, location.pathname);
             }
           }
@@ -80,6 +84,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    console.log("AuthProvider mounted, setting up auth subscription");
+    
     // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, _session) => {
       // To avoid deadlocks, we use setTimeout to handle complex operations
@@ -137,6 +143,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string, orgName?: string): Promise<AuthResponse> => {
     try {
+      console.log(`Signing up user with email ${email}, name ${fullName}, organization ${orgName || 'none'}`);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -149,9 +157,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (error) throw error;
       
-      if (data.session && orgName) {
+      console.log("Signup successful. User:", data.user?.id, "Session:", data.session ? "exists" : "none");
+      
+      if (data.session && data.user && orgName) {
         // Create organization for the new user
-        await createOrganization(orgName, data.user!.id);
+        console.log("Creating organization during signup");
+        const orgId = await createOrganization(orgName, data.user.id);
+        
+        if (orgId) {
+          console.log(`Organization ${orgId} created successfully`);
+        } else {
+          console.warn("Failed to create organization during signup");
+        }
       }
       
       // Only show success message if there's no session (email confirmation required)
@@ -169,6 +186,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       return { ...data };
     } catch (error: any) {
+      console.error("Error in signUp:", error);
       toast({
         title: "Error signing up",
         description: error.message,
