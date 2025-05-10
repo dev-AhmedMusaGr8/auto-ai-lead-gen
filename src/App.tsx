@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/auth";
 import { AIProvider } from "./contexts/AIContext";
 import { OnboardingProvider } from "./contexts/OnboardingContext";
@@ -47,6 +47,24 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// AuthCheck component to handle initial auth check and redirection
+const AuthCheck = () => {
+  const { refreshProfile, user, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Only refresh profile if user exists
+    if (user && refreshProfile) {
+      console.log("App: Initial profile refresh");
+      refreshProfile();
+    }
+  }, [refreshProfile, user]);
+  
+  // No redirection here, just profile refresh
+  return null;
+};
 
 // Protected route that checks authentication status
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -193,84 +211,82 @@ const DashboardRoute = ({ children, adminOnly = false }: { children: React.React
 
 // Define the App component outside of the export to avoid hook issues
 const AppContent = () => {
-  const { refreshProfile } = useAuth();
-  
-  // Refresh profile on initial app load
-  useEffect(() => {
-    if (refreshProfile) {
-      refreshProfile();
-    }
-  }, [refreshProfile]);
-  
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Index />} />
-      <Route path="/signin" element={<SignIn />} />
-      <Route path="/invite/accept" element={<AcceptInvite />} />
-      
-      {/* Organization Creation */}
-      <Route path="/organization/create" element={
-        <ProtectedRoute>
-          <CreateOrganization />
-        </ProtectedRoute>
-      } />
-      
-      {/* Admin Onboarding - Protected and only for admins who need onboarding */}
-      <Route path="/onboarding" element={
-        <ProtectedRoute>
-          <OrgRequiredRoute>
-            <AdminOnboardingRoute>
-              <OnboardingLayout />
-            </AdminOnboardingRoute>
-          </OrgRequiredRoute>
-        </ProtectedRoute>
-      }>
-        <Route path="welcome" element={<Welcome />} />
-        <Route path="dealership" element={<Dealership />} />
-        <Route path="inventory" element={<Inventory />} />
-        <Route path="team" element={<Team />} />
-        <Route path="complete" element={<Complete />} />
-      </Route>
-      
-      {/* Role-specific Onboarding - Protected and only for non-admins who need role onboarding */}
-      <Route path="/role-onboarding" element={
-        <ProtectedRoute>
-          <OrgRequiredRoute>
-            <RoleOnboardingRoute>
-              <RoleOnboardingLayout />
-            </RoleOnboardingRoute>
-          </OrgRequiredRoute>
-        </ProtectedRoute>
-      }>
-        <Route path="sales" element={<SalesRepOnboarding />} />
-        <Route path="service" element={<ServiceAdvisorOnboarding />} />
-        <Route path="hr" element={<HROnboarding />} />
-        <Route path="finance" element={<FinanceOnboarding />} />
-        <Route path="support" element={<SupportOnboarding />} />
-      </Route>
-      
-      {/* Role-based Dashboard - Protected and requires completed onboarding */}
-      <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <OrgRequiredRoute>
-            <DashboardRoute>
-              <RoleDashboardLayout />
-            </DashboardRoute>
-          </OrgRequiredRoute>
-        </ProtectedRoute>
-      }>
-        <Route index element={<AdminDashboard />} /> {/* Default to admin dashboard */}
-        <Route path="admin" element={<AdminDashboard />} />
-        <Route path="sales" element={<SalesDashboard />} />
-        <Route path="hr" element={<HRDashboard />} />
-        <Route path="finance" element={<FinanceDashboard />} />
-        <Route path="support" element={<SupportDashboard />} />
-      </Route>
-      
-      {/* Fallback */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <AuthCheck />
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Index />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/invite/accept" element={<AcceptInvite />} />
+        
+        {/* Organization Creation */}
+        <Route path="/organization/create" element={
+          <ProtectedRoute>
+            <CreateOrganization />
+          </ProtectedRoute>
+        } />
+        
+        {/* Admin Onboarding - Protected and only for admins who need onboarding */}
+        <Route path="/onboarding" element={
+          <ProtectedRoute>
+            <OrgRequiredRoute>
+              <AdminOnboardingRoute>
+                <OnboardingLayout />
+              </AdminOnboardingRoute>
+            </OrgRequiredRoute>
+          </ProtectedRoute>
+        }>
+          <Route path="welcome" element={<Welcome />} />
+          <Route path="dealership" element={<Dealership />} />
+          <Route path="inventory" element={<Inventory />} />
+          <Route path="team" element={<Team />} />
+          <Route path="complete" element={<Complete />} />
+        </Route>
+        
+        {/* Role-specific Onboarding - Protected and only for non-admins who need role onboarding */}
+        <Route path="/role-onboarding" element={
+          <ProtectedRoute>
+            <OrgRequiredRoute>
+              <RoleOnboardingRoute>
+                <RoleOnboardingLayout />
+              </RoleOnboardingRoute>
+            </OrgRequiredRoute>
+          </ProtectedRoute>
+        }>
+          <Route path="sales" element={<SalesRepOnboarding />} />
+          <Route path="service" element={<ServiceAdvisorOnboarding />} />
+          <Route path="hr" element={<HROnboarding />} />
+          <Route path="finance" element={<FinanceOnboarding />} />
+          <Route path="support" element={<SupportOnboarding />} />
+        </Route>
+        
+        {/* Dashboard Routes */}
+        {/* Main dashboard route with role dashboard layout */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <OrgRequiredRoute>
+              <DashboardRoute>
+                <RoleDashboardLayout />
+              </DashboardRoute>
+            </OrgRequiredRoute>
+          </ProtectedRoute>
+        }>
+          {/* Default dashboard route */}
+          <Route index element={<Navigate to="/dashboard/admin" replace />} />
+          
+          {/* Role-specific dashboard routes */}
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="sales" element={<SalesDashboard />} />
+          <Route path="hr" element={<HRDashboard />} />
+          <Route path="finance" element={<FinanceDashboard />} />
+          <Route path="support" element={<SupportDashboard />} />
+        </Route>
+        
+        {/* Fallback */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 };
 

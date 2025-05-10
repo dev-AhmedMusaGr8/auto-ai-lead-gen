@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,80 +29,96 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Handle auth state changes
+  // Handle auth state changes with improved robustness
   const handleAuthChange = async (event: string, session: Session | null) => {
     console.log("Auth state changed:", event, "User ID:", session?.user?.id, "Path:", location.pathname);
     
+    // Always update session and user state first (synchronous operations)
+    if (session?.user) {
+      setUser(session.user);
+      setSession(session);
+    } else {
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setOrganization(null);
+    }
+    
     try {
       if (session?.user) {
-        setUser(session.user);
-        setSession(session);
-        
-        // Fetch user profile on auth changes that matter
+        // For critical auth events, fetch user profile
         if (['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION', 'SIGNED_UP'].includes(event)) {
           console.log(`Fetching user profile after ${event} event`);
-          const userProfile = await fetchUserProfile(session.user.id);
-          console.log("User profile after fetch:", userProfile);
           
-          setProfile(userProfile);
-          
-          // Fetch organization details if available
-          if (userProfile?.org_id) {
-            console.log("Fetching organization using org_id:", userProfile.org_id);
-            const org = await fetchOrganization(userProfile.org_id);
-            setOrganization(org);
-          } else if (userProfile?.dealership_id) {
-            // Fallback to dealership_id for backward compatibility
-            console.log("Fetching organization using dealership_id:", userProfile.dealership_id);
-            const org = await fetchOrganization(userProfile.dealership_id);
-            setOrganization(org);
-          }
-          
-          // Redirect on sign in or sign up events - with improved logging
-          if (event === 'SIGNED_IN' || event === 'SIGNED_UP') {
-            console.log("Redirecting after sign in/up event", event);
-            console.log("User profile for redirect:", userProfile);
-            console.log("Current path:", location.pathname);
-            
-            // For signup, always go to organization creation first
-            if (event === 'SIGNED_UP') {
-              // If signup, always redirect to org creation first
-              if (location.pathname !== '/organization/create') {
-                console.log("New signup, redirecting to organization creation");
-                navigate('/organization/create', { replace: true });
+          // Use setTimeout to prevent potential auth deadlocks
+          setTimeout(async () => {
+            try {
+              const userProfile = await fetchUserProfile(session.user.id);
+              console.log("User profile after fetch:", userProfile);
+              
+              setProfile(userProfile);
+              
+              // Fetch organization details if available
+              if (userProfile?.org_id || userProfile?.dealership_id) {
+                const orgId = userProfile.org_id || userProfile.dealership_id;
+                if (orgId) {
+                  console.log("Fetching organization using org_id:", orgId);
+                  const org = await fetchOrganization(orgId);
+                  setOrganization(org);
+                }
               }
-            } else {
-              // For signin, use normal redirection logic based on profile
-              setTimeout(() => {
-                redirectUserBasedOnProfile(userProfile, true, navigate, location.pathname);
-              }, 300);
+              
+              // Redirect on sign in or sign up events with proper timing
+              if ((event === 'SIGNED_IN' || event === 'SIGNED_UP') && userProfile) {
+                console.log("Redirecting after sign in/up event", event);
+                console.log("User profile for redirect:", userProfile);
+                console.log("Current path:", location.pathname);
+                
+                // For signup, always go to organization creation first
+                if (event === 'SIGNED_UP') {
+                  // If not already on the organization creation page, redirect there
+                  if (location.pathname !== '/organization/create') {
+                    console.log("New signup, redirecting to organization creation");
+                    navigate('/organization/create', { replace: true });
+                  }
+                } else {
+                  // For signin, use normal redirection logic based on profile
+                  redirectUserBasedOnProfile(userProfile, true, navigate, location.pathname);
+                }
+              }
+              
+              setIsLoading(false);
+            } catch (error) {
+              console.error("Error in profile fetching after auth event:", error);
+              setIsLoading(false);
             }
-          }
+          }, 0);
+        } else {
+          // For non-critical events, just update loading state
+          setIsLoading(false);
         }
-      } else {
-        setUser(null);
-        setSession(null);
-        setProfile(null);
-        setOrganization(null);
-        
+      } else if (event === 'SIGNED_OUT') {
         // If signed out, redirect to home page
-        if (event === 'SIGNED_OUT') {
-          navigate('/', { replace: true });
-        }
+        navigate('/', { replace: true });
+        setIsLoading(false);
+      } else {
+        // For other events without a session, just update loading state
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error in auth state change handler:", error);
-    } finally {
       setIsLoading(false);
     }
   };
 
+  // Set up auth subscriptions when component mounts
   useEffect(() => {
     console.log("AuthProvider mounted, setting up auth subscription");
+    setIsLoading(true);
     
     // First set up the auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, _session) => {
-      // To avoid deadlocks, we use setTimeout to handle complex operations
+      // Use setTimeout to safely handle auth state changes
       setTimeout(() => {
         handleAuthChange(_event, _session);
       }, 0);
@@ -110,7 +127,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Check for existing session on initial load
     const initializeAuth = async () => {
       try {
-        setIsLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         console.log("Initial session check:", session?.user?.id);
         
@@ -130,23 +146,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Add this method to manually refresh profile data
+  // More robust profile refresh method 
   const refreshProfile = async () => {
-    if (!user) return null;
+    if (!user) {
+      console.log("No user to refresh profile for");
+      return null;
+    }
     
     try {
       console.log("Manually refreshing user profile for:", user.id);
       setIsLoading(true);
       
       const userProfile = await fetchUserProfile(user.id);
-      setProfile(userProfile);
+      console.log("Profile after refresh:", userProfile);
       
-      // Also refresh organization if available
-      if (userProfile?.org_id || userProfile?.dealership_id) {
-        const orgId = userProfile.org_id || userProfile.dealership_id;
-        if (orgId) {
-          const org = await fetchOrganization(orgId);
-          setOrganization(org);
+      if (userProfile) {
+        setProfile(userProfile);
+        
+        // Also refresh organization if available
+        if (userProfile.org_id || userProfile.dealership_id) {
+          const orgId = userProfile.org_id || userProfile.dealership_id;
+          if (orgId) {
+            console.log("Also refreshing organization data:", orgId);
+            const org = await fetchOrganization(orgId);
+            setOrganization(org);
+          }
         }
       }
       
@@ -159,9 +183,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Auth methods with improved error handling
   const signIn = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       console.log("Attempting sign in for:", email);
+      setIsLoading(true);
+      
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
@@ -180,12 +207,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         variant: "destructive"
       });
       return { error };
+    } finally {
+      // Don't set isLoading false here as it will be handled by the auth state change
     }
   };
 
   const signUp = async (email: string, password: string, fullName: string): Promise<AuthResponse> => {
     try {
       console.log(`Signing up user with email ${email}, name ${fullName}`);
+      setIsLoading(true);
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -222,12 +252,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message,
         variant: "destructive"
       });
+      setIsLoading(false);
       return { error };
     }
   };
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
       await supabase.auth.signOut();
       navigate('/');
     } catch (error: any) {
@@ -236,9 +268,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: error.message,
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  // Helper utilities for role checking
   const hasRole = (role: UserRole) => {
     return profile?.roles?.includes(role) ?? false;
   };
@@ -247,6 +282,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return profile?.is_admin ?? false;
   };
 
+  // User invitation function
   const inviteUser = async (email: string, role: UserRole, department?: string): Promise<{ success: boolean; error?: string }> => {
     try {
       if (!profile?.org_id && !profile?.dealership_id) {
@@ -323,8 +359,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   
   const acceptInvite = async (token: string, password: string, fullName: string): Promise<AuthResponse> => {
     try {
-      // Since we don't have the invites table yet, we'll simulate accepting an invite
-      // by creating a user with the provided details
+      // Simplified implementation since the full invite system isn't implemented yet
       const { data, error } = await supabase.auth.signUp({
         email: fullName + '@example.com', // This should be the email from the invite
         password,

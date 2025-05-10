@@ -92,25 +92,49 @@ export const redirectUserBasedOnProfile = (
   const redirectPath = determineRedirectPath(profile, isNewSession);
   console.log("Redirect path determined:", redirectPath, "current path:", currentPath);
   
+  // Don't redirect if already on the target path or a sub-path
+  if (currentPath === redirectPath || 
+      (redirectPath !== '/dashboard' && currentPath.startsWith(redirectPath))) {
+    console.log(`Already at ${currentPath}, which matches redirect path ${redirectPath}`);
+    return;
+  }
+  
   // Paths that should never be redirected from
   const safePublicPaths = ['/', '/signin', '/signup', '/invite/accept'];
-  
-  // Don't redirect if:
-  // 1. We're not already on the target path
-  // 2. We're not on a safe public path like home or login
-  // 3. We're not already in an onboarding flow when we should be
-  // 4. We're not already in the dashboard section when we should be
-  // 5. We're on the organization creation page and should stay there
-  if (!currentPath.startsWith(redirectPath) && 
-      !safePublicPaths.includes(currentPath) &&
-      !(currentPath.includes('/onboarding') && redirectPath.includes('/onboarding')) &&
-      !(currentPath.includes('/role-onboarding') && redirectPath.includes('/role-onboarding')) &&
-      !(currentPath.includes('/dashboard') && redirectPath.includes('/dashboard')) &&
-      !(currentPath === '/organization/create' && !profile.org_id && !profile.dealership_id) &&
-      !(currentPath === '/organization/create' && redirectPath === '/onboarding/welcome')) {
-    console.log(`Redirecting to ${redirectPath} from ${currentPath}`);
-    navigate(redirectPath, { replace: true });
-  } else {
-    console.log(`Not redirecting, staying on ${currentPath}`);
+  if (safePublicPaths.includes(currentPath)) {
+    console.log(`On safe public path ${currentPath}, not redirecting`);
+    return;
   }
+  
+  // Don't redirect if in the correct section already
+  const onboardingPaths = ['/onboarding', '/role-onboarding'];
+  if (redirectPath.includes('/onboarding') && 
+      onboardingPaths.some(p => currentPath.startsWith(p))) {
+    console.log(`Already in onboarding flow at ${currentPath}, not redirecting to ${redirectPath}`);
+    return;
+  }
+  
+  // Don't redirect if already in the dashboard section when should be in dashboard
+  if (redirectPath.includes('/dashboard') && currentPath.includes('/dashboard')) {
+    console.log(`Already in dashboard section at ${currentPath}, not redirecting to ${redirectPath}`);
+    return;
+  }
+  
+  // Special cases for organization creation
+  if (currentPath === '/organization/create') {
+    if (!profile.org_id && !profile.dealership_id) {
+      console.log(`Staying on organization creation page as user has no organization`);
+      return;
+    }
+    
+    if (redirectPath === '/onboarding/welcome') {
+      console.log(`Organization creation successful, redirecting to onboarding`);
+      navigate(redirectPath, { replace: true });
+      return;
+    }
+  }
+
+  // If we got here, we should redirect
+  console.log(`Redirecting to ${redirectPath} from ${currentPath}`);
+  navigate(redirectPath, { replace: true });
 };

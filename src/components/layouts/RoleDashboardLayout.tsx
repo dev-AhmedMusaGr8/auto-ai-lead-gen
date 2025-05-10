@@ -1,7 +1,7 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth';
 import { Sidebar } from '@/components/ui/sidebar';
 import { 
   Users, 
@@ -86,28 +86,51 @@ const RoleDashboardLayout = () => {
   const { profile, isLoading, signOut, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const role = profile?.roles?.[0] || 'admin';
+  const [localLoading, setLocalLoading] = useState(true);
+  const [activeRole, setActiveRole] = useState<string>('admin');
   
   console.log("RoleDashboardLayout: Current location", location.pathname);
   console.log("RoleDashboardLayout: Current user profile", profile);
   
   // Force profile refresh when component mounts
   useEffect(() => {
-    if (refreshProfile) {
-      console.log("Refreshing profile data from RoleDashboardLayout");
-      refreshProfile();
-    }
+    const loadProfile = async () => {
+      setLocalLoading(true);
+      if (refreshProfile) {
+        console.log("RoleDashboardLayout: Refreshing profile data");
+        try {
+          const updatedProfile = await refreshProfile();
+          console.log("RoleDashboardLayout: Profile after refresh:", updatedProfile);
+          
+          if (updatedProfile?.roles?.[0]) {
+            setActiveRole(updatedProfile.roles[0]);
+          }
+        } catch (error) {
+          console.error("Error refreshing profile:", error);
+        }
+      }
+      setLocalLoading(false);
+    };
+
+    loadProfile();
   }, [refreshProfile]);
   
   useEffect(() => {
-    if (!isLoading && !profile) {
+    if (!isLoading && !profile && !localLoading) {
+      console.log("RoleDashboardLayout: No profile found, redirecting to signin");
       navigate('/signin');
     }
-  }, [profile, isLoading, navigate]);
+  }, [profile, isLoading, localLoading, navigate]);
   
-  const navItems = getRoleNavItems(role);
+  useEffect(() => {
+    if (profile?.roles?.[0] && profile.roles[0] !== activeRole) {
+      setActiveRole(profile.roles[0]);
+    }
+  }, [profile, activeRole]);
   
-  if (isLoading) {
+  const navItems = getRoleNavItems(activeRole);
+  
+  if (isLoading || localLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -125,7 +148,8 @@ const RoleDashboardLayout = () => {
     navigate('/signin');
   };
 
-  const roleColor = role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800';
+  const roleColor = profile.is_admin ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800';
+  const role = profile.roles?.[0] || 'admin';
   
   return (
     <div className="flex h-screen bg-gray-100">
@@ -170,7 +194,7 @@ const RoleDashboardLayout = () => {
               <div className="flex-1">
                 <p className="text-sm font-medium truncate">{profile.full_name || 'User'}</p>
                 <div className="flex items-center">
-                  {role === 'admin' ? (
+                  {profile.is_admin ? (
                     <div className="flex items-center">
                       <Badge variant="secondary" className={roleColor}>
                         <Shield className="w-3 h-3 mr-1" />

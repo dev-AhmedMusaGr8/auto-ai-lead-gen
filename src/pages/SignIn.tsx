@@ -44,11 +44,11 @@ const SignIn = () => {
   // Redirect if user is already authenticated
   useEffect(() => {
     if (user && profile) {
-      console.log("User is authenticated. Profile:", profile);
+      console.log("SignIn: User is authenticated. Profile:", profile);
       
       // Check if organization exists
       if (!profile.org_id && !profile.dealership_id) {
-        console.log("No organization found, redirecting to org creation");
+        console.log("SignIn: No organization found, redirecting to org creation");
         navigate('/organization/create', { replace: true });
         return;
       }

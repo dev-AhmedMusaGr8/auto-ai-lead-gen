@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,59 +14,77 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 const CreateOrganization = () => {
   const [orgName, setOrgName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user, profile, refreshProfile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [pageLoading, setPageLoading] = useState(true);
 
   // Initialize page and check if user already has an organization
   useEffect(() => {
     const checkProfile = async () => {
       try {
-        setPageLoading(true);
-        
-        // If no user yet, keep waiting
+        console.log("CreateOrganization: Initializing component");
+        // If no user yet, wait for auth to complete
         if (!user) {
-          console.log("No user found yet, waiting...");
+          console.log("CreateOrganization: No user found yet, will check again when user loads");
           return;
         }
+
+        console.log("CreateOrganization: User found, checking profile:", profile);
         
-        console.log("User found, checking profile:", profile);
-        
-        // If we have a profile AND an org, redirect
-        if (profile) {
-          if (profile.org_id || profile.dealership_id) {
-            console.log("User already has an organization, redirecting");
+        // User exists, but we might not have their profile yet
+        if (!profile) {
+          if (refreshProfile) {
+            console.log("CreateOrganization: Profile not loaded yet, refreshing...");
+            const refreshedProfile = await refreshProfile();
             
-            // If admin onboarding is not completed, redirect to onboarding
+            if (refreshedProfile) {
+              console.log("CreateOrganization: Profile refreshed:", refreshedProfile);
+              
+              // If profile has org_id, redirect appropriately
+              if (refreshedProfile.org_id || refreshedProfile.dealership_id) {
+                console.log("CreateOrganization: User already has an organization, redirecting");
+                // Redirect to onboarding or dashboard based on profile state
+                if (refreshedProfile.is_admin && !refreshedProfile.onboarding_completed) {
+                  navigate('/onboarding/welcome', { replace: true });
+                } else {
+                  navigate('/dashboard', { replace: true });
+                }
+              } else {
+                // No org_id, show the form
+                console.log("CreateOrganization: User has no organization, showing form");
+                setInitializing(false);
+              }
+            } else {
+              // Still no profile after refresh, but allow org creation anyway
+              console.log("CreateOrganization: No profile after refresh, allowing org creation");
+              setInitializing(false);
+            }
+          } else {
+            // No refresh function, allow organization creation anyway
+            setInitializing(false);
+          }
+        } else {
+          // We already have the profile
+          if (profile.org_id || profile.dealership_id) {
+            console.log("CreateOrganization: User already has organization, redirecting");
+            // Redirect based on profile state
             if (profile.is_admin && !profile.onboarding_completed) {
               navigate('/onboarding/welcome', { replace: true });
             } else {
               navigate('/dashboard', { replace: true });
             }
           } else {
-            console.log("User has no organization, staying on create page");
-            setPageLoading(false);
-          }
-        } else if (user) {
-          // We have a user but no profile, try to refresh it
-          console.log("User exists but no profile, refreshing profile data");
-          if (refreshProfile) {
-            const refreshedProfile = await refreshProfile();
-            if (!refreshedProfile) {
-              // Still no profile, but we should allow organization creation
-              console.log("No profile after refresh, allowing org creation");
-              setPageLoading(false);
-            }
-          } else {
-            // No refresh function, but allow organization creation anyway
-            setPageLoading(false);
+            // No org_id in existing profile, show the form
+            console.log("CreateOrganization: User has no organization, showing form");
+            setInitializing(false);
           }
         }
       } catch (err) {
         console.error("Error in org page initialization:", err);
-        setPageLoading(false);
+        setInitializing(false);
+        setError("Error loading your profile. Please refresh the page or contact support.");
       }
     };
     
@@ -112,11 +131,18 @@ const CreateOrganization = () => {
         
         // Force a refresh of the auth context to get updated profile
         if (refreshProfile) {
-          await refreshProfile();
+          console.log("Refreshing profile after organization creation");
+          const updatedProfile = await refreshProfile();
           
-          // Navigate to onboarding welcome page
-          navigate('/onboarding/welcome', { replace: true });
+          console.log("Updated profile after refresh:", updatedProfile);
+          
+          // Navigate to onboarding welcome page with a slight delay to allow state to sync
+          setTimeout(() => {
+            console.log("Navigating to onboarding welcome page");
+            navigate('/onboarding/welcome', { replace: true });
+          }, 300);
         } else {
+          // If no refresh function, navigate anyway
           navigate('/onboarding/welcome', { replace: true });
         }
       } else {
@@ -135,12 +161,12 @@ const CreateOrganization = () => {
     }
   };
 
-  // Show loading state while checking profile
-  if (pageLoading) {
+  // Show loading state while initializing
+  if (initializing) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-        <p className="mt-4 text-gray-600">Loading...</p>
+        <p className="mt-4 text-gray-600">Loading your account details...</p>
       </div>
     );
   }
