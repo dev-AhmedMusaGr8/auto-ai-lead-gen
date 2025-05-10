@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { AIMessage, AIConversation, AIAssistantOptions, AIContextType } from '@/types/ai';
 
-// Create context without requiring AuthContext
+// Create context
 const AIContext = createContext<AIContextType | null>(null);
 
 export const useAI = () => {
@@ -35,9 +35,14 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const { toast } = useToast();
   
   const startNewConversation = useCallback(async (options: AIAssistantOptions): Promise<AIConversation> => {
-    // Check authentication at method call time instead of initialization
+    // Get session at method call time instead of initialization
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be signed in to use the AI assistant",
+        variant: "destructive"
+      });
       throw new Error('User must be authenticated to start a conversation');
     }
     
@@ -61,8 +66,6 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         updatedAt: new Date()
       };
       
-      // Save to Supabase (we'll implement this later)
-      
       setCurrentConversation(newConversation);
       setConversations(prev => [newConversation, ...prev]);
       
@@ -81,6 +84,17 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   }, [toast]);
   
   const sendMessage = useCallback(async (content: string): Promise<void> => {
+    // Check current session before proceeding
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be signed in to use the AI assistant",
+        variant: "destructive"
+      });
+      throw new Error('User must be authenticated to send a message');
+    }
+    
     if (!currentConversation) {
       throw new Error('No active conversation');
     }
@@ -133,9 +147,6 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           conv.id === finalConversation.id ? finalConversation : conv
         )
       );
-      
-      // Save to Supabase (we'll implement this later)
-      
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -149,13 +160,23 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   }, [currentConversation, toast]);
   
   const loadConversation = useCallback(async (id: string): Promise<void> => {
-    // This will be implemented to load conversations from Supabase
+    // Check authentication before loading a conversation
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast({
+        title: "Authentication required",
+        description: "You must be signed in to load conversations",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // For now just find from local state
     const conversation = conversations.find(c => c.id === id);
     if (conversation) {
       setCurrentConversation(conversation);
     }
-  }, [conversations]);
+  }, [conversations, toast]);
   
   const clearCurrentConversation = useCallback(() => {
     setCurrentConversation(null);

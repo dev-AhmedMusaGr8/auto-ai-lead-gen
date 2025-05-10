@@ -20,103 +20,73 @@ const CreateOrganization = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Initialize page and check if user already has an organization
+  // Initialize component and authenticate user
   useEffect(() => {
-    const checkProfile = async () => {
+    const initAuth = async () => {
+      console.log("CreateOrganization: Initializing component");
       try {
-        console.log("CreateOrganization: Component mounted, initializing");
-        
-        // If no user yet, show loading state
         if (!user) {
-          console.log("CreateOrganization: No user found yet, waiting for auth to complete");
+          console.log("CreateOrganization: No authenticated user found");
+          // Add a short delay to ensure auth state has had time to initialize
+          setTimeout(() => {
+            if (!user) {
+              console.log("CreateOrganization: Still no user after delay, redirecting to signin");
+              navigate('/signin', { replace: true });
+            }
+          }, 500);
           return;
         }
 
-        console.log("CreateOrganization: User found with ID:", user.id);
-        console.log("CreateOrganization: Current profile state:", profile);
+        console.log("CreateOrganization: User authenticated, ID:", user.id);
         
-        // User exists, but we might not have their profile yet
-        if (!profile) {
-          if (refreshProfile) {
-            console.log("CreateOrganization: Profile not loaded yet, refreshing...");
-            try {
-              const refreshedProfile = await refreshProfile();
-              
-              console.log("CreateOrganization: Profile after refresh:", refreshedProfile);
-              
-              // If profile has org_id, redirect appropriately
-              if (refreshedProfile?.org_id || refreshedProfile?.dealership_id) {
-                console.log("CreateOrganization: User already has an organization, redirecting");
-                // Redirect to onboarding or dashboard based on profile state
-                if (refreshedProfile.is_admin && !refreshedProfile.onboarding_completed) {
-                  navigate('/onboarding/welcome', { replace: true });
-                } else {
-                  navigate('/dashboard', { replace: true });
-                }
-              } else {
-                // No org_id, show the form
-                console.log("CreateOrganization: User has no organization, showing form");
-                setInitializing(false);
-              }
-            } catch (refreshError) {
-              console.error("CreateOrganization: Error refreshing profile:", refreshError);
-              setInitializing(false);
-              setError("Error loading your profile. Please try again or contact support.");
-            }
+        // If we already have a profile with org_id, redirect to appropriate page
+        if (profile && (profile.org_id || profile.dealership_id)) {
+          console.log("CreateOrganization: User already has an organization, redirecting");
+          if (profile.is_admin && !profile.onboarding_completed) {
+            navigate('/onboarding/welcome', { replace: true });
           } else {
-            // No refresh function, allow organization creation anyway
-            console.log("CreateOrganization: No refreshProfile function available");
-            setInitializing(false);
+            navigate('/dashboard', { replace: true });
           }
-        } else {
-          // We already have the profile
-          if (profile.org_id || profile.dealership_id) {
-            console.log("CreateOrganization: User already has organization with ID:", profile.org_id || profile.dealership_id);
-            // Redirect based on profile state
-            if (profile.is_admin && !profile.onboarding_completed) {
-              navigate('/onboarding/welcome', { replace: true });
-            } else {
-              navigate('/dashboard', { replace: true });
+          return;
+        }
+        
+        // If we don't have a profile yet but have refreshProfile available, use it
+        if (!profile && refreshProfile) {
+          console.log("CreateOrganization: No profile yet, refreshing...");
+          try {
+            const refreshedProfile = await refreshProfile();
+            console.log("CreateOrganization: Profile refreshed:", refreshedProfile);
+            
+            // Check if the refreshed profile has an organization
+            if (refreshedProfile && (refreshedProfile.org_id || refreshedProfile.dealership_id)) {
+              console.log("CreateOrganization: Refreshed profile has an organization, redirecting");
+              if (refreshedProfile.is_admin && !refreshedProfile.onboarding_completed) {
+                navigate('/onboarding/welcome', { replace: true });
+              } else {
+                navigate('/dashboard', { replace: true });
+              }
+              return;
             }
-          } else {
-            // No org_id in existing profile, show the form
-            console.log("CreateOrganization: User has no organization, showing form");
-            setInitializing(false);
+          } catch (refreshError) {
+            console.error("Error refreshing profile:", refreshError);
           }
         }
-      } catch (err) {
-        console.error("Error in org page initialization:", err);
+        
+        // If we get here, show the form
+        console.log("CreateOrganization: User can create an organization, showing form");
         setInitializing(false);
-        setError("Error loading your profile. Please refresh the page or contact support.");
+        
+      } catch (error) {
+        console.error("Error in organization page initialization:", error);
+        setError("An error occurred while initializing. Please try again.");
+        setInitializing(false);
       }
     };
-    
-    checkProfile();
+
+    initAuth();
   }, [user, profile, navigate, refreshProfile]);
 
-  // Secondary effect to check whenever the user or profile changes
-  useEffect(() => {
-    console.log("CreateOrganization: User or profile dependency changed");
-    console.log("User:", user);
-    console.log("Profile:", profile);
-    
-    if (initializing && user) {
-      console.log("User is available but still initializing, rechecking...");
-      const checkProfileAgain = async () => {
-        if (!profile && refreshProfile) {
-          console.log("No profile yet, trying to refresh again");
-          await refreshProfile();
-        } else if (profile) {
-          console.log("Profile is now available:", profile);
-          setInitializing(false);
-        }
-      };
-      
-      checkProfileAgain();
-    }
-  }, [user, profile, refreshProfile, initializing]);
-
-  // Reset error message when organization name changes
+  // Reset error when form changes
   useEffect(() => {
     if (error && orgName) {
       setError(null);
@@ -137,6 +107,7 @@ const CreateOrganization = () => {
         description: "You must be signed in to create an organization.",
         variant: "destructive"
       });
+      navigate('/signin', { replace: true });
       return;
     }
     
@@ -158,15 +129,11 @@ const CreateOrganization = () => {
         if (refreshProfile) {
           console.log("Refreshing profile after organization creation");
           try {
-            const updatedProfile = await refreshProfile();
+            await refreshProfile();
             
-            console.log("Updated profile after refresh:", updatedProfile);
-            
-            // Navigate to onboarding welcome page with a slight delay to allow state to sync
-            setTimeout(() => {
-              console.log("Navigating to onboarding welcome page");
-              navigate('/onboarding/welcome', { replace: true });
-            }, 500);
+            // Navigate to onboarding
+            console.log("Navigating to onboarding welcome page");
+            navigate('/onboarding/welcome', { replace: true });
           } catch (refreshError) {
             console.error("Error refreshing profile after org creation:", refreshError);
             // Navigate anyway even if refresh failed
@@ -198,7 +165,7 @@ const CreateOrganization = () => {
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
         <p className="mt-4 text-gray-600">Loading your account details...</p>
-        {/* Display debug info in development */}
+        {/* Display debug info */}
         <div className="mt-4 text-xs text-gray-400">
           <p>User ID: {user?.id || 'Not loaded'}</p>
           <p>Auth state: {user ? 'Authenticated' : 'Not authenticated'}</p>

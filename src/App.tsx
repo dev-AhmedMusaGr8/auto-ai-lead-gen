@@ -58,11 +58,12 @@ const AuthCheck = () => {
     // Only refresh profile if user exists
     if (user && refreshProfile) {
       console.log("App: Initial profile refresh");
-      refreshProfile();
+      refreshProfile().catch(err => {
+        console.error("Error refreshing profile:", err);
+      });
     }
   }, [refreshProfile, user]);
   
-  // No redirection here, just profile refresh
   return null;
 };
 
@@ -76,7 +77,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!user) {
-    return <Navigate to="/signin" state={{ from: location }} replace />;
+    // Store the current path to redirect back after login
+    return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
   }
   
   return <>{children}</>;
@@ -84,18 +86,34 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Route that checks if user needs an organization
 const OrgRequiredRoute = ({ children }: { children: React.ReactNode }) => {
-  const { profile, isLoading } = useAuth();
+  const { profile, isLoading, user } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/signin', { replace: true });
+    } else if (!isLoading && user && !profile) {
+      console.log("OrgRequiredRoute: User has no profile");
+    } else if (!isLoading && profile && !profile.org_id && !profile.dealership_id) {
+      console.log("OrgRequiredRoute: User has no organization");
+      navigate('/organization/create', { replace: true });
+    }
+  }, [isLoading, user, profile, navigate]);
   
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
+  if (!user) {
+    return null; // The useEffect will handle redirection
+  }
+  
   if (!profile) {
-    return <Navigate to="/signin" replace />;
+    return <div className="flex items-center justify-center min-h-screen">Loading user profile...</div>;
   }
   
   if (!profile.org_id && !profile.dealership_id) {
-    return <Navigate to="/organization/create" replace />;
+    return null; // The useEffect will handle redirection
   }
   
   return <>{children}</>;
@@ -103,37 +121,51 @@ const OrgRequiredRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Route that checks if user needs admin onboarding
 const AdminOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
-  const { profile, isLoading } = useAuth();
+  const { profile, isLoading, user } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        navigate('/signin', { replace: true });
+      } else if (profile) {
+        // If the user isn't an admin, redirect to role onboarding or dashboard
+        if (!profile.is_admin) {
+          if (!profile.role_onboarding_completed) {
+            const roleRoutes: Record<string, string> = {
+              'sales': '/role-onboarding/sales',
+              'hr': '/role-onboarding/hr',
+              'finance': '/role-onboarding/finance',
+              'support': '/role-onboarding/support',
+              'sales_rep': '/role-onboarding/sales',
+              'service_advisor': '/role-onboarding/service',
+              'finance_admin': '/role-onboarding/finance',
+              'marketing': '/role-onboarding/marketing',
+            };
+            navigate(roleRoutes[profile.roles?.[0] || ''] || '/dashboard', { replace: true });
+          } else {
+            navigate('/dashboard', { replace: true });
+          }
+        }
+        // If admin onboarding is completed, redirect to dashboard
+        else if (profile.onboarding_completed) {
+          navigate('/dashboard/admin', { replace: true });
+        }
+      }
+    }
+  }, [isLoading, profile, user, navigate]);
   
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
-  if (!profile) {
-    return <Navigate to="/signin" replace />;
+  if (!user || !profile) {
+    return null; // The useEffect will handle redirection
   }
   
-  // If the user isn't an admin, redirect to role onboarding or dashboard
-  if (!profile.is_admin) {
-    if (!profile.role_onboarding_completed) {
-      const roleRoutes: Record<string, string> = {
-        'sales': '/role-onboarding/sales',
-        'hr': '/role-onboarding/hr',
-        'finance': '/role-onboarding/finance',
-        'support': '/role-onboarding/support',
-        'sales_rep': '/role-onboarding/sales',
-        'service_advisor': '/role-onboarding/service',
-        'finance_admin': '/role-onboarding/finance',
-        'marketing': '/role-onboarding/marketing',
-      };
-      return <Navigate to={roleRoutes[profile.roles?.[0] || ''] || '/dashboard'} replace />;
-    }
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  // If admin onboarding is completed, redirect to dashboard
-  if (profile.onboarding_completed) {
-    return <Navigate to="/dashboard/admin" replace />;
+  // Only render children if user is admin and onboarding is not completed
+  if (!profile.is_admin || profile.onboarding_completed) {
+    return null; // The useEffect will handle redirection
   }
   
   return <>{children}</>;
@@ -141,24 +173,37 @@ const AdminOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Route that checks if user needs role-specific onboarding
 const RoleOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
-  const { profile, isLoading } = useAuth();
+  const { profile, isLoading, user } = useAuth();
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        navigate('/signin', { replace: true });
+      } else if (profile) {
+        // Admin users don't need role onboarding
+        if (profile.is_admin) {
+          navigate('/dashboard/admin', { replace: true });
+        }
+        // If role onboarding is completed, redirect to dashboard
+        else if (profile.role_onboarding_completed) {
+          navigate('/dashboard', { replace: true });
+        }
+      }
+    }
+  }, [isLoading, profile, user, navigate]);
   
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
   
-  if (!profile) {
-    return <Navigate to="/signin" replace />;
+  if (!user || !profile) {
+    return null; // The useEffect will handle redirection
   }
   
-  // Admin users don't need role onboarding
-  if (profile.is_admin) {
-    return <Navigate to="/dashboard/admin" replace />;
-  }
-  
-  // If role onboarding is completed, redirect to dashboard
-  if (profile.role_onboarding_completed) {
-    return <Navigate to="/dashboard" replace />;
+  // Only render children if user is not an admin and role onboarding is not completed
+  if (profile.is_admin || profile.role_onboarding_completed) {
+    return null; // The useEffect will handle redirection
   }
   
   return <>{children}</>;
@@ -166,47 +211,141 @@ const RoleOnboardingRoute = ({ children }: { children: React.ReactNode }) => {
 
 // Route that checks if user has completed all onboarding requirements
 const DashboardRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
-  const { profile, isLoading } = useAuth();
+  const { profile, isLoading, user } = useAuth();
+  const navigate = useNavigate();
   
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        navigate('/signin', { replace: true });
+      } else if (profile) {
+        // Check for organization
+        if (!profile.org_id && !profile.dealership_id) {
+          navigate('/organization/create', { replace: true });
+        }
+        // Admin must complete onboarding
+        else if (profile.is_admin && !profile.onboarding_completed) {
+          navigate('/onboarding/welcome', { replace: true });
+        }
+        // Non-admin must complete role onboarding
+        else if (!profile.is_admin && !profile.role_onboarding_completed) {
+          const roleRoutes: Record<string, string> = {
+            'sales': '/role-onboarding/sales',
+            'hr': '/role-onboarding/hr',
+            'finance': '/role-onboarding/finance',
+            'support': '/role-onboarding/support',
+            'sales_rep': '/role-onboarding/sales',
+            'service_advisor': '/role-onboarding/service',
+            'finance_admin': '/role-onboarding/finance',
+            'marketing': '/role-onboarding/marketing',
+          };
+          navigate(roleRoutes[profile.roles?.[0] || ''] || '/dashboard', { replace: true });
+        }
+        // Admin only routes
+        else if (adminOnly && !profile.is_admin) {
+          navigate('/dashboard', { replace: true });
+        }
+      }
+    }
+  }, [isLoading, profile, user, navigate, adminOnly]);
+
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
-  
-  if (!profile) {
-    return <Navigate to="/signin" replace />;
+
+  if (!user) {
+    return null; // The useEffect will handle redirection
   }
 
-  // Check for organization
-  if (!profile.org_id && !profile.dealership_id) {
-    return <Navigate to="/organization/create" replace />;
+  if (!profile) {
+    return <div className="flex items-center justify-center min-h-screen">Loading user profile...</div>;
   }
-  
-  // Admin must complete onboarding
-  if (profile.is_admin && !profile.onboarding_completed) {
-    return <Navigate to="/onboarding/welcome" replace />;
-  }
-  
-  // Non-admin must complete role onboarding
-  if (!profile.is_admin && !profile.role_onboarding_completed) {
-    const roleRoutes: Record<string, string> = {
-      'sales': '/role-onboarding/sales',
-      'hr': '/role-onboarding/hr',
-      'finance': '/role-onboarding/finance',
-      'support': '/role-onboarding/support',
-      'sales_rep': '/role-onboarding/sales',
-      'service_advisor': '/role-onboarding/service',
-      'finance_admin': '/role-onboarding/finance',
-      'marketing': '/role-onboarding/marketing',
-    };
-    return <Navigate to={roleRoutes[profile.roles?.[0] || ''] || '/dashboard'} replace />;
-  }
-  
-  // Admin only routes
-  if (adminOnly && !profile.is_admin) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
+
+  // All checks passed, render children
   return <>{children}</>;
+};
+
+// Main App component with providers and routes
+const AppRoutes = () => {
+  return (
+    <>
+      <AuthCheck />
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Index />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/invite/accept" element={<AcceptInvite />} />
+        
+        {/* Organization Creation */}
+        <Route path="/organization/create" element={
+          <ProtectedRoute>
+            <CreateOrganization />
+          </ProtectedRoute>
+        } />
+        
+        {/* Admin Onboarding - Protected and only for admins who need onboarding */}
+        <Route path="/onboarding" element={
+          <ProtectedRoute>
+            <OrgRequiredRoute>
+              <AdminOnboardingRoute>
+                <OnboardingLayout />
+              </AdminOnboardingRoute>
+            </OrgRequiredRoute>
+          </ProtectedRoute>
+        }>
+          <Route path="welcome" element={<Welcome />} />
+          <Route path="dealership" element={<Dealership />} />
+          <Route path="inventory" element={<Inventory />} />
+          <Route path="team" element={<Team />} />
+          <Route path="complete" element={<Complete />} />
+        </Route>
+        
+        {/* Role-specific Onboarding - Protected and only for non-admins who need role onboarding */}
+        <Route path="/role-onboarding" element={
+          <ProtectedRoute>
+            <OrgRequiredRoute>
+              <RoleOnboardingRoute>
+                <RoleOnboardingLayout />
+              </RoleOnboardingRoute>
+            </OrgRequiredRoute>
+          </ProtectedRoute>
+        }>
+          <Route path="sales" element={<SalesRepOnboarding />} />
+          <Route path="service" element={<ServiceAdvisorOnboarding />} />
+          <Route path="hr" element={<HROnboarding />} />
+          <Route path="finance" element={<FinanceOnboarding />} />
+          <Route path="support" element={<SupportOnboarding />} />
+        </Route>
+        
+        {/* Dashboard Routes */}
+        {/* Main dashboard route with role dashboard layout */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <OrgRequiredRoute>
+              <DashboardRoute>
+                <RoleDashboardLayout />
+              </DashboardRoute>
+            </OrgRequiredRoute>
+          </ProtectedRoute>
+        }>
+          {/* Default dashboard route */}
+          <Route index element={<Navigate to="/dashboard/admin" replace />} />
+          
+          {/* Role-specific dashboard routes */}
+          <Route path="admin" element={<AdminDashboard />} />
+          <Route path="sales" element={<SalesDashboard />} />
+          <Route path="hr" element={<HRDashboard />} />
+          <Route path="finance" element={<FinanceDashboard />} />
+          <Route path="support" element={<SupportDashboard />} />
+        </Route>
+        
+        {/* Fallback */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <Toaster />
+      <Sonner />
+    </>
+  );
 };
 
 const App = () => (
@@ -216,81 +355,7 @@ const App = () => (
         <AuthProvider>
           <AIProvider>
             <OnboardingProvider>
-              <AuthCheck />
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/signin" element={<SignIn />} />
-                <Route path="/invite/accept" element={<AcceptInvite />} />
-                
-                {/* Organization Creation */}
-                <Route path="/organization/create" element={
-                  <ProtectedRoute>
-                    <CreateOrganization />
-                  </ProtectedRoute>
-                } />
-                
-                {/* Admin Onboarding - Protected and only for admins who need onboarding */}
-                <Route path="/onboarding" element={
-                  <ProtectedRoute>
-                    <OrgRequiredRoute>
-                      <AdminOnboardingRoute>
-                        <OnboardingLayout />
-                      </AdminOnboardingRoute>
-                    </OrgRequiredRoute>
-                  </ProtectedRoute>
-                }>
-                  <Route path="welcome" element={<Welcome />} />
-                  <Route path="dealership" element={<Dealership />} />
-                  <Route path="inventory" element={<Inventory />} />
-                  <Route path="team" element={<Team />} />
-                  <Route path="complete" element={<Complete />} />
-                </Route>
-                
-                {/* Role-specific Onboarding - Protected and only for non-admins who need role onboarding */}
-                <Route path="/role-onboarding" element={
-                  <ProtectedRoute>
-                    <OrgRequiredRoute>
-                      <RoleOnboardingRoute>
-                        <RoleOnboardingLayout />
-                      </RoleOnboardingRoute>
-                    </OrgRequiredRoute>
-                  </ProtectedRoute>
-                }>
-                  <Route path="sales" element={<SalesRepOnboarding />} />
-                  <Route path="service" element={<ServiceAdvisorOnboarding />} />
-                  <Route path="hr" element={<HROnboarding />} />
-                  <Route path="finance" element={<FinanceOnboarding />} />
-                  <Route path="support" element={<SupportOnboarding />} />
-                </Route>
-                
-                {/* Dashboard Routes */}
-                {/* Main dashboard route with role dashboard layout */}
-                <Route path="/dashboard" element={
-                  <ProtectedRoute>
-                    <OrgRequiredRoute>
-                      <DashboardRoute>
-                        <RoleDashboardLayout />
-                      </DashboardRoute>
-                    </OrgRequiredRoute>
-                  </ProtectedRoute>
-                }>
-                  {/* Default dashboard route */}
-                  <Route index element={<Navigate to="/dashboard/admin" replace />} />
-                  
-                  {/* Role-specific dashboard routes */}
-                  <Route path="admin" element={<AdminDashboard />} />
-                  <Route path="sales" element={<SalesDashboard />} />
-                  <Route path="hr" element={<HRDashboard />} />
-                  <Route path="finance" element={<FinanceDashboard />} />
-                  <Route path="support" element={<SupportDashboard />} />
-                </Route>
-                
-                {/* Fallback */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster />
-              <Sonner />
+              <AppRoutes />
             </OnboardingProvider>
           </AIProvider>
         </AuthProvider>
