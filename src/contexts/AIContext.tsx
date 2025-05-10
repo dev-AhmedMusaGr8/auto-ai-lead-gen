@@ -2,10 +2,10 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { AIMessage, AIConversation, AIAssistantOptions, AIContextType } from '@/types/ai';
 import { useToast } from '@/components/ui/use-toast';
+import { AIMessage, AIConversation, AIAssistantOptions, AIContextType } from '@/types/ai';
 
+// Create context without requiring AuthContext
 const AIContext = createContext<AIContextType | null>(null);
 
 export const useAI = () => {
@@ -32,11 +32,15 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentConversation, setCurrentConversation] = useState<AIConversation | null>(null);
   const [conversations, setConversations] = useState<AIConversation[]>([]);
-  const { user, profile } = useAuth();
   const { toast } = useToast();
+  
+  // Remove useAuth dependency at initialization
+  // We'll get the user information when needed in the methods
 
   const startNewConversation = useCallback(async (options: AIAssistantOptions): Promise<AIConversation> => {
-    if (!user) {
+    // Check authentication at method call time instead of initialization
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
       throw new Error('User must be authenticated to start a conversation');
     }
     
@@ -77,7 +81,7 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     } finally {
       setIsProcessing(false);
     }
-  }, [user, toast]);
+  }, [toast]);
   
   const sendMessage = useCallback(async (content: string): Promise<void> => {
     if (!currentConversation) {

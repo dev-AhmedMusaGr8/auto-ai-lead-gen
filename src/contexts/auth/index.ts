@@ -1,3 +1,5 @@
 
 export * from './AuthProvider';
-export * from './types';
+
+// We should NOT export the useAuth hook directly, only export the Provider
+// The consumer should import from the AuthProvider file
