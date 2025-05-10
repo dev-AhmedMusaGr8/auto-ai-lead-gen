@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth";
 import AIAssistant from "@/components/ai/AIAssistant";
 import AISummaryCard from "@/components/ai/AISummaryCard";
 import { useNavigate } from "react-router-dom";

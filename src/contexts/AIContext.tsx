@@ -34,9 +34,6 @@ export const AIProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   const [conversations, setConversations] = useState<AIConversation[]>([]);
   const { toast } = useToast();
   
-  // Remove useAuth dependency at initialization
-  // We'll get the user information when needed in the methods
-
   const startNewConversation = useCallback(async (options: AIAssistantOptions): Promise<AIConversation> => {
     // Check authentication at method call time instead of initialization
     const { data: { session } } = await supabase.auth.getSession();
